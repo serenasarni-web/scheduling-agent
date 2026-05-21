@@ -4,7 +4,6 @@
   "installCommand": "npm install",
   "outputDirectory": ".",
   "framework": "nodejs",
-  "nodeVersion": "18.x",
   "env": [
     "DATABASE_URL",
     "GOOGLE_CLIENT_ID",
