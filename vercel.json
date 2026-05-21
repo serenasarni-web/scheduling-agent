@@ -1,0 +1,32 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "outputDirectory": ".",
+  "framework": "nodejs",
+  "nodeVersion": "18.x",
+  "env": [
+    "DATABASE_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "CALENDLY_API_TOKEN",
+    "SESSION_SECRET",
+    "NODE_ENV"
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/reminders/send",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/calendar/sync",
+      "schedule": "*/30 * * * *"
+    }
+  ]
+}
