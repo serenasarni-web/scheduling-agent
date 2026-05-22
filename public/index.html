@@ -3,15 +3,438 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scheduling Agent</title>
+  <title>Scheduling Agent - Dashboard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: #0f0f0f; color: #fff; }
-    #root { min-height: 100vh; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      color: #fff;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(102,126,234,0.5);
+      transform: translateY(-5px);
+    }
+    
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+    
+    .stat {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 5px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-family: inherit;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      background: rgba(102,126,234,0.1);
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+    }
+    
+    .appointments-list {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .appointment-item {
+      background: rgba(102,126,234,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 3px solid #667eea;
+    }
+    
+    .appointment-time {
+      font-weight: 600;
+      color: #667eea;
+    }
+    
+    .appointment-client {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 5px;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    
+    .status.pending {
+      background: rgba(255,165,0,0.2);
+      color: #ffa500;
+    }
+    
+    .status.confirmed {
+      background: rgba(76,175,80,0.2);
+      color: #4caf50;
+    }
+    
+    .message-preview {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.8;
+      border-left: 3px solid #667eea;
+    }
+    
+    .copy-btn {
+      background: #667eea;
+      margin-top: 10px;
+    }
+    
+    .error {
+      background: rgba(244,67,54,0.1);
+      border: 1px solid rgba(244,67,54,0.3);
+      color: #ff6b6b;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .success {
+      background: rgba(76,175,80,0.1);
+      border: 1px solid rgba(76,175,80,0.3);
+      color: #4caf50;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script src="./src/index.js"></script>
+  <div class="container">
+    <header>
+      <h1>📅 Scheduling Agent</h1>
+      <p>Organizza i tuoi impegni con AI</p>
+    </header>
+    
+    <!-- STATS -->
+    <div class="grid">
+      <div class="card">
+        <h2>Appuntamenti</h2>
+        <div class="stat" id="appointmentsCount">0</div>
+        <div class="stat-label">Totali</div>
+      </div>
+      <div class="card">
+        <h2>Clienti</h2>
+        <div class="stat" id="clientsCount">0</div>
+        <div class="stat-label">Registrati</div>
+      </div>
+      <div class="card">
+        <h2>Prossimo Impegno</h2>
+        <div class="stat-label" id="nextAppointment">Non definito</div>
+      </div>
+    </div>
+    
+    <!-- MAIN CONTENT -->
+    <div class="grid">
+      <!-- AGGIUNGI CLIENTE -->
+      <div class="card">
+        <h2>➕ Aggiungi Cliente</h2>
+        <form id="addClientForm">
+          <div id="clientMessage"></div>
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="clientName" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="clientEmail">
+          </div>
+          <div class="form-group">
+            <label>Telefono</label>
+            <input type="tel" id="clientPhone">
+          </div>
+          <button type="submit">Salva Cliente</button>
+        </form>
+      </div>
+      
+      <!-- AGGIUNGI APPUNTAMENTO -->
+      <div class="card">
+        <h2>📆 Nuovo Appuntamento</h2>
+        <form id="addAppointmentForm">
+          <div id="appointmentMessage"></div>
+          <div class="form-group">
+            <label>Titolo</label>
+            <input type="text" id="appointmentTitle" required>
+          </div>
+          <div class="form-group">
+            <label>Data e Ora</label>
+            <input type="datetime-local" id="appointmentDateTime" required>
+          </div>
+          <div class="form-group">
+            <label>Durata (minuti)</label>
+            <input type="number" id="appointmentDuration" value="60">
+          </div>
+          <button type="submit">Crea Appuntamento</button>
+        </form>
+      </div>
+      
+      <!-- GENERA MESSAGGIO WHATSAPP -->
+      <div class="card">
+        <h2>💬 Messaggio WhatsApp</h2>
+        <div class="form-group">
+          <label>Nome Cliente</label>
+          <input type="text" id="clientNameMsg" placeholder="Es: Marco">
+        </div>
+        <button onclick="generateMessage()">Genera Messaggio</button>
+        <div id="messageOutput"></div>
+      </div>
+    </div>
+    
+    <!-- APPUNTAMENTI LIST -->
+    <div class="appointments-list">
+      <h2>📋 I Tuoi Appuntamenti</h2>
+      <div id="appointmentsList"></div>
+    </div>
+  </div>
+  
+  <script>
+    const API_URL = '/api';
+    
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+    
+    // Form submissions
+    document.getElementById('addClientForm').addEventListener('submit', addClient);
+    document.getElementById('addAppointmentForm').addEventListener('submit', addAppointment);
+    
+    async function loadDashboard() {
+      await loadAppointments();
+      await loadClients();
+      updateStats();
+    }
+    
+    async function loadAppointments() {
+      try {
+        const res = await fetch(`${API_URL}/appointments`);
+        const appointments = await res.json();
+        
+        const list = document.getElementById('appointmentsList');
+        if (appointments.length === 0) {
+          list.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);">Nessun appuntamento ancora</p>';
+          return;
+        }
+        
+        list.innerHTML = appointments
+          .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
+          .map(apt => `
+            <div class="appointment-item">
+              <div class="appointment-time">
+                ${new Date(apt.start_time).toLocaleString('it-IT', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric', 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </div>
+              <div style="margin-top:8px;font-weight:600">${apt.title}</div>
+              <div class="appointment-client">${apt.duration_minutes} minuti</div>
+              <span class="status ${apt.status}">${apt.status === 'pending' ? '⏳ In attesa' : '✅ Confermato'}</span>
+            </div>
+          `).join('');
+      } catch (error) {
+        console.error('Errore caricamento appuntamenti:', error);
+      }
+    }
+    
+    async function loadClients() {
+      try {
+        const res = await fetch(`${API_URL}/clients`);
+        const clients = await res.json();
+        return clients;
+      } catch (error) {
+        console.error('Errore caricamento clienti:', error);
+        return [];
+      }
+    }
+    
+    async function addClient(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('clientName').value;
+      const email = document.getElementById('clientEmail').value;
+      const phone = document.getElementById('clientPhone').value;
+      
+      try {
+        const res = await fetch(`${API_URL}/clients`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, notes: '' })
+        });
+        
+        if (res.ok) {
+          showMessage('clientMessage', '✅ Cliente aggiunto!', 'success');
+          document.getElementById('addClientForm').reset();
+          loadDashboard();
+        } else {
+          showMessage('clientMessage', '❌ Errore', 'error');
+        }
+      } catch (error) {
+        showMessage('clientMessage', '❌ Errore: ' + error.message, 'error');
+      }
+    }
+    
+    async function addAppointment(e) {
+      e.preventDefault();
+      
+      const title = document.getElementById('appointmentTitle').value;
+      const startTime = document.getElementById('appointmentDateTime').value;
+      const duration = parseInt(document.getElementById('appointmentDuration').value);
+      
+      try {
+        const res = await fetch(`${API_URL}/appointments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: 1,
+            call_type_id: 1,
+            start_time: new Date(startTime).toISOString(),
+            duration_minutes: duration,
+            title
+          })
+        });
+        
+        if (res.ok) {
+          showMessage('appointmentMessage', '✅ Appuntamento creato!', 'success');
+          document.getElementById('addAppointmentForm').reset();
+          loadDashboard();
+        } else {
+          showMessage('appointmentMessage', '❌ Errore', 'error');
+        }
+      } catch (error) {
+        showMessage('appointmentMessage', '❌ Errore: ' + error.message, 'error');
+      }
+    }
+    
+    function generateMessage() {
+      const clientName = document.getElementById('clientNameMsg').value || 'cliente';
+      const message = `Ciao ${clientName}! 👋\nEcco i miei slot disponibili per una call:\n\n📅 Domani\n⏰ 10:00-10:30\n⏰ 14:00-14:30\n⏰ 15:00-15:30\n\nQuale orario preferisci?\n\n🔗 Link: https://calendly.com/tuolinkofittizio`;
+      
+      const output = document.getElementById('messageOutput');
+      output.innerHTML = `
+        <div class="message-preview">${message.replace(/\n/g, '<br>')}</div>
+        <button class="copy-btn" onclick="copyToClipboard('${message.replace(/'/g, "\\'")}')">📋 Copia</button>
+        <button class="copy-btn" style="background:#25D366" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('${message}'), '_blank')">WhatsApp</button>
+      `;
+    }
+    
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Copiato!');
+      });
+    }
+    
+    function showMessage(elementId, message, type) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="${type}">${message}</div>`;
+      setTimeout(() => el.innerHTML = '', 3000);
+    }
+    
+    function updateStats() {
+      document.getElementById('appointmentsCount').textContent = 'Caricamento...';
+    }
+  </script>
 </body>
 </html>
