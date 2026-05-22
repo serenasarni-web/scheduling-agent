@@ -253,3 +253,44 @@ app.post('/api/google/sync', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// ============================================
+// CALENDLY INTEGRATION
+// ============================================
+
+const { createCalendlyEvent, getCalendlyEvents } = require('./scripts/calendly');
+
+app.post('/api/calendly/create-event', async (req, res) => {
+  try {
+    const { appointment_id, client_name, client_email } = req.body;
+    
+    const appointment = await pool.query(
+      'SELECT * FROM appointments WHERE id = $1',
+      [appointment_id]
+    );
+    
+    if (appointment.rows.length === 0) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+    
+    const apt = appointment.rows[0];
+    const calendlyUrl = await createCalendlyEvent({
+      ...apt,
+      client_name,
+      client_email
+    });
+    
+    res.json({ success: true, calendly_url: calendlyUrl });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/calendly/events', async (req, res) => {
+  try {
+    const events = await getCalendlyEvents();
+    res.json(events);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
