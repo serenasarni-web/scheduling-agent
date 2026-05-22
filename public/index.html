@@ -438,3 +438,59 @@
   </script>
 </body>
 </html>
+
+<script>
+// Funzione per creare evento Calendly quando crei appuntamento
+async function createAppointmentWithCalendly(e) {
+  e.preventDefault();
+  
+  const title = document.getElementById('appointmentTitle').value;
+  const startTime = document.getElementById('appointmentDateTime').value;
+  const duration = parseInt(document.getElementById('appointmentDuration').value);
+  const clientName = prompt('Nome cliente:');
+  const clientEmail = prompt('Email cliente:');
+  
+  if (!clientName || !clientEmail) return;
+  
+  try {
+    // 1. Crea appuntamento nel database
+    const aptRes = await fetch('/api/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: 1,
+        call_type_id: 1,
+        start_time: new Date(startTime).toISOString(),
+        duration_minutes: duration,
+        title
+      })
+    });
+    
+    const apt = await aptRes.json();
+    
+    // 2. Crea evento Calendly
+    const calendlyRes = await fetch('/api/calendly/create-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        appointment_id: apt.id,
+        client_name: clientName,
+        client_email: clientEmail
+      })
+    });
+    
+    const calendly = await calendlyRes.json();
+    
+    if (calendly.success) {
+      alert('✅ Appuntamento creato su Calendly!\n\nLink: ' + calendly.calendly_url);
+      document.getElementById('addAppointmentForm').reset();
+      loadDashboard();
+    }
+  } catch (error) {
+    alert('❌ Errore: ' + error.message);
+  }
+}
+
+// Sostituisci il form submission
+document.getElementById('addAppointmentForm').onsubmit = createAppointmentWithCalendly;
+</script>
