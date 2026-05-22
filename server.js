@@ -186,3 +186,70 @@ app.listen(PORT, () => {
   console.log(`🚀 Scheduling Agent Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
 });
+
+// ============================================
+// GOOGLE CALENDAR INTEGRATION
+// ============================================
+
+const { syncGoogleCalendar, createGoogleCalendarEvent } = require('./scripts/google-calendar');
+
+app.get('/api/google/auth-url', (req, res) => {
+  const { google } = require('googleapis');
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
+  
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: [
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events'
+    ]
+  });
+  
+  res.json({ auth_url: authUrl });
+});
+
+app.post('/api/google/callback', async (req, res) => {
+  try {
+    const { code, userId } = req.body;
+    const { google } = require('googleapis');
+    
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    
+    const { tokens } = await oauth2Client.getToken(code);
+    
+    await pool.query(
+      'UPDATE users SET google_token = $1 WHERE id = $2',
+      [tokens.access_token, userId]
+    );
+    
+    await syncGoogleCalendar(userId, tokens.access_token);
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/google/sync', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await pool.query('SELECT google_token FROM users WHERE id = $1', [userId]);
+    
+    if (!user.rows[0]?.google_token) {
+      return res.status(400).json({ error: 'Google non collegato' });
+    }
+    
+    await syncGoogleCalendar(userId, user.rows[0].google_token);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
