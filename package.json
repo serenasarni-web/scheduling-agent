@@ -8,35 +8,21 @@
     "start": "NODE_ENV=production node server.js",
     "build": "npm install",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js",
-    "vercel-build": "npm run db:migrate"
+    "db:seed": "node scripts/seed.js"
   },
-  "keywords": ["scheduling", "calendar", "ai", "calendly"],
-  "author": "Serena Sarni",
-  "license": "MIT",
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "pg": "^8.11.2",
-    "node-postgres": "^0.0.1",
     "axios": "^1.6.2",
     "googleapis": "^118.0.0",
     "google-auth-library": "^9.4.1",
-    "jwt-decode": "^4.0.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0",
-    "express-session": "^1.17.3",
     "uuid": "^9.0.1",
     "node-cron": "^3.0.2",
-    "nodemailer": "^6.9.7",
-    "ical": "^0.8.0",
     "date-fns": "^2.30.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "engines": {
-    "node": "24.x"
   }
 }
