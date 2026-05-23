@@ -310,3 +310,14 @@ app.get('/api/ai/suggestions', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// ============================================
+// REMINDER SERVICE
+// ============================================
+
+const { startReminderService } = require('./scripts/reminders');
+
+// Avvia il servizio di reminder
+if (process.env.NODE_ENV === 'production') {
+  startReminderService();
+}
