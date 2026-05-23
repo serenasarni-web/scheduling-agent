@@ -294,3 +294,19 @@ app.get('/api/calendly/events', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// ============================================
+// AI SUGGESTIONS
+// ============================================
+
+const { getAISuggestions } = require('./scripts/ai-suggestions');
+
+app.get('/api/ai/suggestions', async (req, res) => {
+  try {
+    const userId = req.query.userId || 1;
+    const suggestions = await getAISuggestions(userId);
+    res.json(suggestions);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
