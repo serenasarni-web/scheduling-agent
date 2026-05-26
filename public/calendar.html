@@ -10,7 +10,7 @@
     .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: #667eea; margin-bottom: 20px; }
     .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
     button:hover { background: #764ba2; }
     button.active { background: #764ba2; }
     input[type="date"] { padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid #667eea; border-radius: 6px; color: #fff; }
@@ -18,14 +18,14 @@
     .month-header { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #667eea; }
     .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
     .day-header { text-align: center; font-weight: 600; padding: 10px; border-bottom: 1px solid #667eea; }
-    .day { aspect-ratio: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; overflow-y: auto; transition: all 0.3s; }
+    .day { aspect-ratio: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; overflow-y: auto; }
     .day:hover { background: rgba(102,126,234,0.2); border-color: #667eea; }
-    .day.other-month { opacity: 0.3; pointer-events: none; }
-    .day.today { border: 2px solid #667eea; background: rgba(102,126,234,0.1); }
+    .day.other-month { opacity: 0.3; }
+    .day.today { border: 2px solid #667eea; }
     .day-number { font-weight: 600; font-size: 12px; margin-bottom: 4px; }
     .appointment-dot { width: 4px; height: 4px; background: #667eea; border-radius: 50%; margin: 1px 0; }
     .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-    .week-day { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; min-height: 200px; cursor: pointer; transition: all 0.3s; }
+    .week-day { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; min-height: 200px; cursor: pointer; }
     .week-day:hover { background: rgba(102,126,234,0.2); border-color: #667eea; }
     .week-day-header { font-weight: 600; margin-bottom: 8px; font-size: 12px; color: #667eea; }
     .apt-mini { background: rgba(102,126,234,0.2); border-left: 2px solid #667eea; padding: 4px; margin-bottom: 4px; border-radius: 3px; font-size: 11px; }
@@ -56,8 +56,15 @@
     let currentView = 'month';
     let appointments = [];
 
-    function getDateKey(date) {
-      return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    function dateToString(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function sameDay(d1, d2) {
+      return dateToString(d1) === dateToString(d2);
     }
 
     async function loadAppointments() {
@@ -80,17 +87,16 @@
     function updateFromInput() {
       const val = document.getElementById('dateInput').value;
       if (val) {
-        const [y, m, d] = val.split('-');
-        currentDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        currentDate = new Date(val + 'T00:00:00');
         setView('day');
       }
     }
 
     function updateCalendar() {
+      document.getElementById('dateInput').value = dateToString(currentDate);
       if (currentView === 'month') renderMonth();
       else if (currentView === 'week') renderWeek();
       else renderDay();
-      document.getElementById('dateInput').value = getDateKey(currentDate);
     }
 
     function today() {
@@ -98,8 +104,8 @@
       updateCalendar();
     }
 
-    function selectDay(date) {
-      currentDate = new Date(date);
+    function selectDay(dateStr) {
+      currentDate = new Date(dateStr + 'T00:00:00');
       setView('day');
     }
 
@@ -124,11 +130,11 @@
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-        const dateKey = getDateKey(date);
-        const isToday = dateKey === getDateKey(new Date());
-        const dayAppointments = appointments.filter(apt => getDateKey(new Date(apt.start_time)) === dateKey);
+        const dateStr = dateToString(date);
+        const isToday = sameDay(date, new Date());
+        const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
-        html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay(new Date(${year}, ${month}, ${day}))">
+        html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay('${dateStr}')">
           <div class="day-number">${day}</div>
           ${dayAppointments.map(() => '<div class="appointment-dot"></div>').join('')}
         </div>`;
@@ -148,10 +154,10 @@
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-        const dateKey = getDateKey(date);
-        const dayAppointments = appointments.filter(apt => getDateKey(new Date(apt.start_time)) === dateKey);
+        const dateStr = dateToString(date);
+        const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
-        html += `<div class="week-day" onclick="selectDay(new Date(${date.getFullYear()}, ${date.getMonth()}, ${date.getDate()}))">
+        html += `<div class="week-day" onclick="selectDay('${dateStr}')">
           <div class="week-day-header">${date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
           ${dayAppointments.map(apt => `<div class="apt-mini">${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
         </div>`;
@@ -162,8 +168,7 @@
     }
 
     function renderDay() {
-      const dateKey = getDateKey(currentDate);
-      const dayAppointments = appointments.filter(apt => getDateKey(new Date(apt.start_time)) === dateKey);
+      const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), currentDate));
 
       let html = `<div class="day-view">
         <h2>${currentDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h2>`;
