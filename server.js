@@ -133,3 +133,28 @@ app.get('/api/ai/suggestions', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Scheduling Agent Server running on port ${PORT}`);
 });
+
+// EDIT & DELETE APPOINTMENTS
+app.put('/api/appointments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, start_time, duration_minutes } = req.body;
+    const result = await pool.query(
+      `UPDATE appointments SET title = $1, start_time = $2, duration_minutes = $3 WHERE id = $4 RETURNING *`,
+      [title, start_time, duration_minutes, id]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/appointments/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM appointments WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
