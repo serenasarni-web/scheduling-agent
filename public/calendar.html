@@ -56,6 +56,10 @@
     let currentView = 'month';
     let appointments = [];
 
+    function formatDate(date) {
+      return date.toISOString().split('T')[0];
+    }
+
     async function loadAppointments() {
       try {
         const res = await fetch('/api/appointments');
@@ -77,7 +81,10 @@
 
     function updateCalendar() {
       const dateInput = document.getElementById('dateInput').value;
-      if (dateInput) currentDate = new Date(dateInput + 'T00:00:00');
+      if (dateInput) {
+        const [year, month, day] = dateInput.split('-');
+        currentDate = new Date(year, month - 1, day);
+      }
       
       if (currentView === 'month') renderMonth();
       else if (currentView === 'week') renderWeek();
@@ -88,6 +95,13 @@
       currentDate = new Date();
       document.getElementById('dateInput').valueAsDate = currentDate;
       updateCalendar();
+    }
+
+    function selectDay(dateStr) {
+      const [year, month, day] = dateStr.split('-');
+      currentDate = new Date(year, month - 1, day);
+      document.getElementById('dateInput').value = dateStr;
+      setView('day');
     }
 
     function renderMonth() {
@@ -112,10 +126,11 @@
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
+        const dateStr = formatDate(date);
         const isToday = date.toDateString() === new Date().toDateString();
-        const dayAppointments = appointments.filter(apt => new Date(apt.start_time).toDateString() === date.toDateString());
+        const dayAppointments = appointments.filter(apt => formatDate(new Date(apt.start_time)).startsWith(dateStr));
 
-        html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay(new Date(${year}, ${month}, ${day}))">
+        html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay('${dateStr}')">
           <div class="day-number">${day}</div>
           ${dayAppointments.map(() => '<div class="appointment-dot"></div>').join('')}
         </div>`;
@@ -135,9 +150,10 @@
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-        const dayAppointments = appointments.filter(apt => new Date(apt.start_time).toDateString() === date.toDateString());
+        const dateStr = formatDate(date);
+        const dayAppointments = appointments.filter(apt => formatDate(new Date(apt.start_time)).startsWith(dateStr));
 
-        html += `<div class="week-day" onclick="selectDay(new Date(${date.getFullYear()}, ${date.getMonth()}, ${date.getDate()}))">
+        html += `<div class="week-day" onclick="selectDay('${dateStr}')">
           <div class="week-day-header">${date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
           ${dayAppointments.map(apt => `<div class="apt-mini">${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
         </div>`;
@@ -147,14 +163,9 @@
       document.getElementById('calendar').innerHTML = html;
     }
 
-    function selectDay(date) {
-      currentDate = date;
-      document.getElementById('dateInput').valueAsDate = date;
-      setView('day');
-    }
-
     function renderDay() {
-      const dayAppointments = appointments.filter(apt => new Date(apt.start_time).toDateString() === currentDate.toDateString());
+      const dateStr = formatDate(currentDate);
+      const dayAppointments = appointments.filter(apt => formatDate(new Date(apt.start_time)).startsWith(dateStr));
 
       let html = `<div class="day-view">
         <h2>${currentDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h2>`;
