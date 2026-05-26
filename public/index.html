@@ -61,6 +61,7 @@
         <button onclick="showTab('dashboard')" class="active">Dashboard</button>
         <button onclick="showTab('appointments')">Appuntamenti</button>
         <button onclick="showTab('clients')">Clienti</button>
+        <button onclick="showTab('calendar')">📅 Calendario</button>
         <button onclick="showTab('ai')">AI</button>
       </nav>
     </header>
@@ -153,6 +154,11 @@
       </div>
     </div>
 
+    <!-- CALENDAR -->
+    <div id="calendar" class="content">
+      <iframe src="/calendar.html" style="width: 100%; height: 800px; border: none; border-radius: 12px;"></iframe>
+    </div>
+
     <!-- AI -->
     <div id="ai" class="content">
       <div class="section">
@@ -168,7 +174,7 @@
     </div>
   </div>
 
-  <!-- EDIT MODAL -->
+  <!-- EDIT MODAL CLIENT -->
   <div id="editModal" class="modal">
     <div class="modal-content">
       <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -190,30 +196,6 @@
         <div class="form-group">
           <label>Note</label>
           <textarea id="edit-client-notes" rows="3"></textarea>
-        </div>
-        <button type="submit">Salva</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- EDIT APPOINTMENT MODAL -->
-  <div id="editAptModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeAptModal()">&times;</span>
-      <h2>Modifica Appuntamento</h2>
-      <form onsubmit="saveAppointment(event)">
-        <input type="hidden" id="edit-apt-id">
-        <div class="form-group">
-          <label>Titolo</label>
-          <input type="text" id="edit-apt-title" required>
-        </div>
-        <div class="form-group">
-          <label>Data e Ora</label>
-          <input type="datetime-local" id="edit-apt-datetime" required>
-        </div>
-        <div class="form-group">
-          <label>Durata (minuti)</label>
-          <input type="number" id="edit-apt-duration" required>
         </div>
         <button type="submit">Salva</button>
       </form>
@@ -300,10 +282,6 @@
             <p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p>
             <p>⏱️ ${a.duration_minutes} min</p>
             <p>Status: <span style="color: #51cf66;">${a.status}</span></p>
-          </div>
-          <div class="item-actions">
-            <button onclick="openEditAptModal(${a.id})">✏️ Modifica</button>
-            <button class="delete" onclick="deleteAppointment(${a.id})">🗑️ Elimina</button>
           </div>
         </div>
       `).join('');
@@ -409,29 +387,6 @@
       } catch (error) {
         alert('Errore: ' + error.message);
       }
-    }
-
-    function openEditAptModal(aptId) {
-      const apt = appointments.find(a => a.id === aptId);
-      document.getElementById('edit-apt-id').value = aptId;
-      document.getElementById('edit-apt-title').value = apt.title;
-      document.getElementById('edit-apt-datetime').value = new Date(apt.start_time).toISOString().slice(0, 16);
-      document.getElementById('edit-apt-duration').value = apt.duration_minutes;
-      document.getElementById('editAptModal').classList.add('active');
-    }
-
-    function closeAptModal() {
-      document.getElementById('editAptModal').classList.remove('active');
-    }
-
-    async function saveAppointment(e) {
-      e.preventDefault();
-      alert('Feature in sviluppo');
-    }
-
-    async function deleteAppointment(aptId) {
-      if (!confirm('Sei sicuro?')) return;
-      alert('Feature in sviluppo');
     }
 
     async function sendAIMessage() {
