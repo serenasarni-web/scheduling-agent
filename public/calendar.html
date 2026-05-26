@@ -1,4 +1,3 @@
-cat > public/calendar.html << 'EOF'
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -11,7 +10,7 @@ cat > public/calendar.html << 'EOF'
     .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: #667eea; margin-bottom: 20px; }
     .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
     button:hover { background: #764ba2; }
     button.active { background: #764ba2; }
     input[type="date"] { padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid #667eea; border-radius: 6px; color: #fff; }
@@ -21,12 +20,13 @@ cat > public/calendar.html << 'EOF'
     .day-header { text-align: center; font-weight: 600; padding: 10px; border-bottom: 1px solid #667eea; }
     .day { aspect-ratio: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; overflow-y: auto; transition: all 0.3s; }
     .day:hover { background: rgba(102,126,234,0.2); border-color: #667eea; }
-    .day.other-month { opacity: 0.3; }
+    .day.other-month { opacity: 0.3; pointer-events: none; }
     .day.today { border: 2px solid #667eea; background: rgba(102,126,234,0.1); }
     .day-number { font-weight: 600; font-size: 12px; margin-bottom: 4px; }
     .appointment-dot { width: 4px; height: 4px; background: #667eea; border-radius: 50%; margin: 1px 0; }
     .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-    .week-day { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; min-height: 200px; }
+    .week-day { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; min-height: 200px; cursor: pointer; transition: all 0.3s; }
+    .week-day:hover { background: rgba(102,126,234,0.2); border-color: #667eea; }
     .week-day-header { font-weight: 600; margin-bottom: 8px; font-size: 12px; color: #667eea; }
     .apt-mini { background: rgba(102,126,234,0.2); border-left: 2px solid #667eea; padding: 4px; margin-bottom: 4px; border-radius: 3px; font-size: 11px; }
     .day-view { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 20px; }
@@ -115,7 +115,7 @@ cat > public/calendar.html << 'EOF'
         const isToday = date.toDateString() === new Date().toDateString();
         const dayAppointments = appointments.filter(apt => new Date(apt.start_time).toDateString() === date.toDateString());
 
-        html += `<div class="day ${isToday ? 'today' : ''}">
+        html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay(new Date(${year}, ${month}, ${day}))">
           <div class="day-number">${day}</div>
           ${dayAppointments.map(() => '<div class="appointment-dot"></div>').join('')}
         </div>`;
@@ -137,7 +137,7 @@ cat > public/calendar.html << 'EOF'
         date.setDate(startOfWeek.getDate() + i);
         const dayAppointments = appointments.filter(apt => new Date(apt.start_time).toDateString() === date.toDateString());
 
-        html += `<div class="week-day">
+        html += `<div class="week-day" onclick="selectDay(new Date(${date.getFullYear()}, ${date.getMonth()}, ${date.getDate()}))">
           <div class="week-day-header">${date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
           ${dayAppointments.map(apt => `<div class="apt-mini">${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
         </div>`;
@@ -145,6 +145,12 @@ cat > public/calendar.html << 'EOF'
 
       html += '</div>';
       document.getElementById('calendar').innerHTML = html;
+    }
+
+    function selectDay(date) {
+      currentDate = date;
+      document.getElementById('dateInput').valueAsDate = date;
+      setView('day');
     }
 
     function renderDay() {
