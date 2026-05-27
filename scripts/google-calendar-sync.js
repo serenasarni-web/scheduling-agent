@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { google } = require('googleapis');
 const { Pool } = require('pg');
 require('dotenv').config({ path: '.env.local' });
 
@@ -6,7 +7,12 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
-// Sincronizza appuntamento DA database A Google Calendar
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  'http://localhost:3001/api/auth/google/callback'
+);
+
 async function pushToGoogle(appointment, googleAccessToken) {
   try {
     if (!googleAccessToken) {
@@ -46,7 +52,6 @@ async function pushToGoogle(appointment, googleAccessToken) {
   }
 }
 
-// Elimina appuntamento DA Google Calendar
 async function deleteFromGoogle(googleEventId, googleAccessToken) {
   try {
     if (!googleAccessToken || !googleEventId) return false;
@@ -68,4 +73,4 @@ async function deleteFromGoogle(googleEventId, googleAccessToken) {
   }
 }
 
-module.exports = { pushToGoogle, deleteFromGoogle };
+module.exports = { pushToGoogle, deleteFromGoogle, oauth2Client };

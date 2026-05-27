@@ -158,3 +158,75 @@ app.delete('/api/sync/google/:aptId', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// GOOGLE OAUTH CONFIG
+const { oauth2Client } = require('./scripts/google-calendar-sync');
+
+app.get('/api/auth/google', (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/calendar']
+  });
+  res.json({ authUrl });
+});
+
+app.post('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code } = req.body;
+    const { tokens } = await oauth2Client.getToken(code);
+    
+    await pool.query(
+      'UPDATE users SET google_token = $1 WHERE id = $2',
+      [tokens.access_token, 1]
+    );
+
+    res.json({ success: true, token: tokens.access_token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/auth/google/status', async (req, res) => {
+  try {
+    const user = await pool.query('SELECT google_token FROM users WHERE id = $1', [1]);
+    res.json({ connected: !!user.rows[0]?.google_token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// GOOGLE OAUTH CONFIG
+const { oauth2Client } = require('./scripts/google-calendar-sync');
+
+app.get('/api/auth/google', (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/calendar']
+  });
+  res.json({ authUrl });
+});
+
+app.post('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code } = req.body;
+    const { tokens } = await oauth2Client.getToken(code);
+    
+    await pool.query(
+      'UPDATE users SET google_token = $1 WHERE id = $2',
+      [tokens.access_token, 1]
+    );
+
+    res.json({ success: true, token: tokens.access_token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/auth/google/status', async (req, res) => {
+  try {
+    const user = await pool.query('SELECT google_token FROM users WHERE id = $1', [1]);
+    res.json({ connected: !!user.rows[0]?.google_token });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
