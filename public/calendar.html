@@ -21,7 +21,7 @@
     .day { aspect-ratio: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; cursor: pointer; display: flex; flex-direction: column; overflow-y: auto; }
     .day:hover { background: rgba(102,126,234,0.2); border-color: #667eea; }
     .day.other-month { opacity: 0.3; }
-    .day.today { border: 2px solid #667eea; }
+    .day.today { border: 2px solid #667eea; background: rgba(102,126,234,0.1); }
     .day-number { font-weight: 600; font-size: 12px; margin-bottom: 4px; }
     .appointment-dot { width: 4px; height: 4px; background: #667eea; border-radius: 50%; margin: 1px 0; }
     .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
@@ -52,19 +52,23 @@
   </div>
 
   <script>
+    const categoryIcons = {
+      work_consulenza_spot: '💼', work_consulenza: '💼', work_allineamento: '💼', work_primo_app: '💼',
+      work_docenza: '💼', work_amministrazione: '💼', work_message_mail: '💼', work_meeting: '💼',
+      gestione_pagamenti: '💳', famiglia_gestione: '👨‍👩‍👧‍👦', famiglia_appuntamento: '👨‍👩‍👧‍👦',
+      salute_psicologo: '🧠', salute_altro: '🧠', svago: '🎉', varie: '⚙️'
+    };
+
     let currentDate = new Date();
     let currentView = 'month';
     let appointments = [];
 
-    function dateToString(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+    function getDateKey(date) {
+      return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
     }
 
     function sameDay(d1, d2) {
-      return dateToString(d1) === dateToString(d2);
+      return getDateKey(d1) === getDateKey(d2);
     }
 
     async function loadAppointments() {
@@ -87,13 +91,14 @@
     function updateFromInput() {
       const val = document.getElementById('dateInput').value;
       if (val) {
-        currentDate = new Date(val + 'T00:00:00');
+        const [y, m, d] = val.split('-');
+        currentDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
         setView('day');
       }
     }
 
     function updateCalendar() {
-      document.getElementById('dateInput').value = dateToString(currentDate);
+      document.getElementById('dateInput').value = getDateKey(currentDate);
       if (currentView === 'month') renderMonth();
       else if (currentView === 'week') renderWeek();
       else renderDay();
@@ -105,7 +110,8 @@
     }
 
     function selectDay(dateStr) {
-      currentDate = new Date(dateStr + 'T00:00:00');
+      const [year, month, day] = dateStr.split('-');
+      currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       setView('day');
     }
 
@@ -130,13 +136,13 @@
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-        const dateStr = dateToString(date);
+        const dateStr = getDateKey(date);
         const isToday = sameDay(date, new Date());
         const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
         html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay('${dateStr}')">
           <div class="day-number">${day}</div>
-          ${dayAppointments.map(() => '<div class="appointment-dot"></div>').join('')}
+          ${dayAppointments.map(apt => `<div class="apt-mini">${categoryIcons[apt.category] || '📅'} ${apt.title}</div>`).join('')}
         </div>`;
       }
 
@@ -154,12 +160,12 @@
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
-        const dateStr = dateToString(date);
+        const dateStr = getDateKey(date);
         const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
         html += `<div class="week-day" onclick="selectDay('${dateStr}')">
           <div class="week-day-header">${date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
-          ${dayAppointments.map(apt => `<div class="apt-mini">${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
+          ${dayAppointments.map(apt => `<div class="apt-mini">${categoryIcons[apt.category] || '📅'} ${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
         </div>`;
       }
 
@@ -168,6 +174,7 @@
     }
 
     function renderDay() {
+      const dateStr = getDateKey(currentDate);
       const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), currentDate));
 
       let html = `<div class="day-view">
@@ -181,7 +188,7 @@
           html += `<div class="time-slot">
             <div class="time">${time}</div>
             <div class="apt-details">
-              <h3>${apt.title}</h3>
+              <h3>${categoryIcons[apt.category] || '📅'} ${apt.title}</h3>
               <p>⏱️ ${apt.duration_minutes} minuti</p>
               <p>Status: <span style="color: #51cf66;">${apt.status}</span></p>
             </div>
