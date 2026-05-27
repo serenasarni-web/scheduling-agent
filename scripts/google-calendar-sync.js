@@ -1,24 +1,21 @@
-const axios = require('axios');
 const { google } = require('googleapis');
-const { Pool } = require('pg');
-require('dotenv').config({ path: '.env.local' });
+const fs = require('fs');
+const path = require('path');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
-
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  'http://localhost:3001/api/auth/google/callback'
+// Carica le credenziali del Service Account
+const serviceAccountKey = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '../config/google-service-account.json'))
 );
 
-async function pushToGoogle(appointment, googleAccessToken) {
+const auth = new google.auth.GoogleAuth({
+  keyFile: path.join(__dirname, '../config/google-service-account.json'),
+  scopes: ['https://www.googleapis.com/auth/calendar']
+});
+
+async function pushToGoogle(appointment, userEmail) {
   try {
-    if (!googleAccessToken) {
-      console.log('❌ Nessun Google token disponibile');
-      return null;
-    }
+    const authClient = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: authClient });
 
     const event = {
       summary: `${appointment.title} [${appointment.category}]`,
@@ -33,44 +30,37 @@ async function pushToGoogle(appointment, googleAccessToken) {
       }
     };
 
-    const response = await axios.post(
-      'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-      event,
-      {
-        headers: {
-          'Authorization': `Bearer ${googleAccessToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    const response = await calendar.events.insert({
+      calendarId: userEmail || 'primary',
+      resource: event
+    });
 
-    console.log('✅ Sincronizzato a Google:', response.data.id);
+    console.log('✅ Sincronizzato a Google Calendar:', response.data.id);
     return response.data.id;
   } catch (error) {
-    console.error('❌ Errore Google:', error.response?.data?.error?.message || error.message);
+    console.error('❌ Errore Google:', error.message);
     return null;
   }
 }
 
-async function deleteFromGoogle(googleEventId, googleAccessToken) {
+async function deleteFromGoogle(googleEventId, userEmail) {
   try {
-    if (!googleAccessToken || !googleEventId) return false;
+    if (!googleEventId) return false;
 
-    await axios.delete(
-      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${googleEventId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${googleAccessToken}`
-        }
-      }
-    );
+    const authClient = await auth.getClient();
+    const calendar = google.calendar({ version: 'v3', auth: authClient });
 
-    console.log('✅ Eliminato da Google:', googleEventId);
+    await calendar.events.delete({
+      calendarId: userEmail || 'primary',
+      eventId: googleEventId
+    });
+
+    console.log('✅ Eliminato da Google Calendar:', googleEventId);
     return true;
   } catch (error) {
-    console.error('❌ Errore eliminazione Google:', error.response?.data?.error?.message || error.message);
+    console.error('❌ Errore eliminazione:', error.message);
     return false;
   }
 }
 
-module.exports = { pushToGoogle, deleteFromGoogle, oauth2Client };
+module.exports = { pushToGoogle, deleteFromGoogle };
