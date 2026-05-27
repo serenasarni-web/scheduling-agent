@@ -21,19 +21,13 @@
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; }
     input, textarea, select { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: inherit; }
-    input::placeholder { color: rgba(255,255,255,0.5); }
     button { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    button:hover { transform: translateY(-2px); }
     .list { display: grid; gap: 15px; }
     .item { background: rgba(255,255,255,0.05); border-left: 3px solid #667eea; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
     .item-content { flex: 1; }
     .item h3 { color: #667eea; margin-bottom: 5px; }
     .item p { font-size: 14px; color: rgba(255,255,255,0.7); margin: 5px 0; }
-    .category-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-right: 5px; }
-    .cat-strategica { background: rgba(102, 126, 234, 0.3); color: #667eea; }
-    .cat-consulenza { background: rgba(76, 175, 80, 0.3); color: #4caf50; }
-    .cat-allineamento { background: rgba(255, 193, 7, 0.3); color: #ffc107; }
-    .cat-personalizzata { background: rgba(244, 67, 54, 0.3); color: #f44336; }
+    .category-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: rgba(102,126,234,0.3); }
     .item-actions { display: flex; gap: 10px; }
     .item-actions button { padding: 6px 12px; font-size: 12px; background: rgba(102,126,234,0.3); }
     .item-actions button.delete { background: rgba(255,107,107,0.3); color: #ff6b6b; border: 1px solid #ff6b6b; }
@@ -79,12 +73,7 @@
         <form onsubmit="createAppointment(event)">
           <div class="form-group"><label>Titolo</label><input type="text" id="apt-title" required></div>
           <div class="form-group"><label>Cliente</label><select id="apt-client" required></select></div>
-          <div class="form-group"><label>Categoria</label><select id="apt-category" required onchange="updateDuration()">
-            <option value="strategica">🎯 Strategica (90 min)</option>
-            <option value="consulenza">💡 Consulenza (60 min)</option>
-            <option value="allineamento">📊 Allineamento (30 min)</option>
-            <option value="personalizzata">⭐ Personalizzata (45 min)</option>
-          </select></div>
+          <div class="form-group"><label>Categoria</label><select id="apt-category" required onchange="updateDuration()"><optgroup label="WORK 💼"><option value="work_consulenza_spot">💼 Consulenza Spot (50 min)</option><option value="work_consulenza">💼 Consulenza (60 min)</option><option value="work_allineamento">💼 Allineamento (30 min)</option><option value="work_primo_app">💼 1° Appuntamento (60 min)</option><option value="work_docenza">💼 Docenza (120 min)</option><option value="work_amministrazione">💼 Amministrazione (10 min)</option><option value="work_message_mail">💼 Message/Mail (10 min)</option><option value="work_meeting">💼 Meeting (360 min)</option></optgroup><optgroup label="GESTIONE 💳"><option value="gestione_pagamenti">💳 Pagamenti (15 min)</option></optgroup><optgroup label="FAMIGLIA 👨‍👩‍👧‍👦"><option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione (120 min)</option><option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento (360 min)</option></optgroup><optgroup label="SALUTE 🧠"><option value="salute_psicologo">🧠 Psicologo (180 min)</option><option value="salute_altro">🧠 Altro (180 min)</option></optgroup><optgroup label="SVAGO 🎉"><option value="svago">🎉 Svago (60 min)</option></optgroup><optgroup label="VARIE ⚙️"><option value="varie">⚙️ Varie (60 min)</option></optgroup></select></div>
           <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="apt-datetime" required></div>
           <div class="form-group"><label>Durata (minuti)</label><input type="number" id="apt-duration" value="60" required></div>
           <button type="submit">Crea</button>
@@ -140,7 +129,7 @@
       <form onsubmit="saveAppointment(event)">
         <input type="hidden" id="edit-apt-id">
         <div class="form-group"><label>Titolo</label><input type="text" id="edit-apt-title" required></div>
-        <div class="form-group"><label>Categoria</label><select id="edit-apt-category" required><option value="strategica">🎯 Strategica</option><option value="consulenza">💡 Consulenza</option><option value="allineamento">📊 Allineamento</option><option value="personalizzata">⭐ Personalizzata</option></select></div>
+        <div class="form-group"><label>Categoria</label><select id="edit-apt-category" required><optgroup label="WORK 💼"><option value="work_consulenza_spot">💼 Consulenza Spot</option><option value="work_consulenza">💼 Consulenza</option><option value="work_allineamento">💼 Allineamento</option><option value="work_primo_app">💼 1° Appuntamento</option><option value="work_docenza">💼 Docenza</option><option value="work_amministrazione">💼 Amministrazione</option><option value="work_message_mail">💼 Message/Mail</option><option value="work_meeting">💼 Meeting</option></optgroup><optgroup label="GESTIONE 💳"><option value="gestione_pagamenti">💳 Pagamenti</option></optgroup><optgroup label="FAMIGLIA 👨‍👩‍👧‍👦"><option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione</option><option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento</option></optgroup><optgroup label="SALUTE 🧠"><option value="salute_psicologo">🧠 Psicologo</option><option value="salute_altro">🧠 Altro</option></optgroup><optgroup label="SVAGO 🎉"><option value="svago">🎉 Svago</option></optgroup><optgroup label="VARIE ⚙️"><option value="varie">⚙️ Varie</option></optgroup></select></div>
         <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="edit-apt-datetime" required></div>
         <div class="form-group"><label>Durata (minuti)</label><input type="number" id="edit-apt-duration" required></div>
         <button type="submit">Salva</button>
@@ -149,162 +138,27 @@
   </div>
 
   <script>
-    const categoryDurations = { strategica: 90, consulenza: 60, allineamento: 30, personalizzata: 45 };
-    const categoryIcons = { strategica: '🎯', consulenza: '💡', allineamento: '📊', personalizzata: '⭐' };
-    let allClients = [];
-    let appointments = [];
-
-    function updateDuration() {
-      const cat = document.getElementById('apt-category').value;
-      document.getElementById('apt-duration').value = categoryDurations[cat] || 60;
-    }
-
-    function showTab(tab) {
-      document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-      document.getElementById(tab).classList.add('active');
-      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-      event.target.classList.add('active');
-      if (tab === 'clients') loadClients();
-      if (tab === 'appointments') { loadAppointments(); loadClients(); }
-      if (tab === 'dashboard') loadDashboard();
-    }
-
-    async function loadClients() {
-      try {
-        const res = await fetch('/api/clients');
-        allClients = await res.json();
-        renderClients();
-        renderClientSelect();
-      } catch (error) {
-        console.error('Errore:', error);
-      }
-    }
-
-    async function loadAppointments() {
-      try {
-        const res = await fetch('/api/appointments');
-        appointments = await res.json();
-        renderAppointments();
-      } catch (error) {
-        console.error('Errore:', error);
-      }
-    }
-
-    async function loadDashboard() {
-      await loadAppointments();
-      await loadClients();
-      document.getElementById('total-apt').textContent = appointments.length;
-      document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length;
-      document.getElementById('total-clients').textContent = allClients.length;
-      const upcoming = appointments.filter(a => new Date(a.start_time) > new Date()).sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).slice(0, 5);
-      document.getElementById('dashboard-appointments').innerHTML = upcoming.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge cat-${a.category}">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p><p>⏱️ ${a.duration_minutes} min</p></div></div>`).join('') || '<p>Nessun appuntamento</p>';
-    }
-
-    function renderClients() {
-      document.getElementById('clients-list').innerHTML = allClients.map(c => `<div class="item"><div class="item-content"><h3>${c.name}</h3><p>📧 ${c.email}</p><p>📞 ${c.phone || 'N/A'}</p>${c.notes ? `<p style="margin-top:10px; font-style:italic; color:#aaa;">📝 ${c.notes}</p>` : ''}</div><div class="item-actions"><button onclick="openEditClientModal(${c.id})">✏️</button><button class="delete" onclick="deleteClient(${c.id})">🗑️</button></div></div>`).join('');
-    }
-
-    function renderAppointments() {
-      document.getElementById('appointments-list').innerHTML = appointments.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge cat-${a.category}">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p><p>⏱️ ${a.duration_minutes} min</p></div><div class="item-actions"><button onclick="openEditAptModal(${a.id})">✏️</button><button class="delete" onclick="deleteAppointment(${a.id})">🗑️</button></div></div>`).join('');
-    }
-
-    function renderClientSelect() {
-      document.getElementById('apt-client').innerHTML = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-
-    async function createClient(e) {
-      e.preventDefault();
-      try {
-        const res = await fetch('/api/clients', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: 1, name: document.getElementById('client-name').value, email: document.getElementById('client-email').value, phone: document.getElementById('client-phone').value, notes: document.getElementById('client-notes').value })
-        });
-        if (res.ok) { e.target.reset(); loadClients(); }
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
-    function openEditClientModal(id) {
-      const c = allClients.find(x => x.id === id);
-      document.getElementById('edit-client-id').value = id;
-      document.getElementById('edit-client-name').value = c.name;
-      document.getElementById('edit-client-email').value = c.email;
-      document.getElementById('edit-client-phone').value = c.phone || '';
-      document.getElementById('edit-client-notes').value = c.notes || '';
-      document.getElementById('editClientModal').classList.add('active');
-    }
-
+    const categoryDurations = {work_consulenza_spot: 50, work_consulenza: 60, work_allineamento: 30, work_primo_app: 60, work_docenza: 120, work_amministrazione: 10, work_message_mail: 10, work_meeting: 360, gestione_pagamenti: 15, famiglia_gestione: 120, famiglia_appuntamento: 360, salute_psicologo: 180, salute_altro: 180, svago: 60, varie: 60};
+    const categoryIcons = {work_consulenza_spot: '💼', work_consulenza: '💼', work_allineamento: '💼', work_primo_app: '💼', work_docenza: '💼', work_amministrazione: '💼', work_message_mail: '💼', work_meeting: '💼', gestione_pagamenti: '💳', famiglia_gestione: '👨‍👩‍👧‍👦', famiglia_appuntamento: '👨‍👩‍👧‍👦', salute_psicologo: '🧠', salute_altro: '🧠', svago: '🎉', varie: '⚙️'};
+    let allClients = [], appointments = [];
+    function updateDuration() { const cat = document.getElementById('apt-category').value; document.getElementById('apt-duration').value = categoryDurations[cat] || 60; }
+    function showTab(tab) { document.querySelectorAll('.content').forEach(el => el.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); if (tab === 'clients') loadClients(); if (tab === 'appointments') { loadAppointments(); loadClients(); } if (tab === 'dashboard') loadDashboard(); }
+    async function loadClients() { try { const res = await fetch('/api/clients'); allClients = await res.json(); renderClients(); renderClientSelect(); } catch (error) { console.error('Errore:', error); } }
+    async function loadAppointments() { try { const res = await fetch('/api/appointments'); appointments = await res.json(); renderAppointments(); } catch (error) { console.error('Errore:', error); } }
+    async function loadDashboard() { await loadAppointments(); await loadClients(); document.getElementById('total-apt').textContent = appointments.length; document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length; document.getElementById('total-clients').textContent = allClients.length; const upcoming = appointments.filter(a => new Date(a.start_time) > new Date()).sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).slice(0, 5); document.getElementById('dashboard-appointments').innerHTML = upcoming.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p><p>⏱️ ${a.duration_minutes} min</p></div></div>`).join('') || '<p>Nessun appuntamento</p>'; }
+    function renderClients() { document.getElementById('clients-list').innerHTML = allClients.map(c => `<div class="item"><div class="item-content"><h3>${c.name}</h3><p>📧 ${c.email}</p><p>📞 ${c.phone || 'N/A'}</p>${c.notes ? `<p style="margin-top:10px; font-style:italic; color:#aaa;">📝 ${c.notes}</p>` : ''}</div><div class="item-actions"><button onclick="openEditClientModal(${c.id})">✏️</button><button class="delete" onclick="deleteClient(${c.id})">🗑️</button></div></div>`).join(''); }
+    function renderAppointments() { document.getElementById('appointments-list').innerHTML = appointments.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p><p>⏱️ ${a.duration_minutes} min</p></div><div class="item-actions"><button onclick="openEditAptModal(${a.id})">✏️</button><button class="delete" onclick="deleteAppointment(${a.id})">🗑️</button></div></div>`).join(''); }
+    function renderClientSelect() { document.getElementById('apt-client').innerHTML = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
+    async function createClient(e) { e.preventDefault(); try { const res = await fetch('/api/clients', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, name: document.getElementById('client-name').value, email: document.getElementById('client-email').value, phone: document.getElementById('client-phone').value, notes: document.getElementById('client-notes').value })}); if (res.ok) { e.target.reset(); loadClients(); } } catch (error) { alert('Errore: ' + error.message); } }
+    function openEditClientModal(id) { const c = allClients.find(x => x.id === id); document.getElementById('edit-client-id').value = id; document.getElementById('edit-client-name').value = c.name; document.getElementById('edit-client-email').value = c.email; document.getElementById('edit-client-phone').value = c.phone || ''; document.getElementById('edit-client-notes').value = c.notes || ''; document.getElementById('editClientModal').classList.add('active'); }
     function closeClientModal() { document.getElementById('editClientModal').classList.remove('active'); }
-
-    async function saveClient(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-client-id').value;
-      try {
-        await fetch(`/api/clients/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: document.getElementById('edit-client-name').value, email: document.getElementById('edit-client-email').value, phone: document.getElementById('edit-client-phone').value, notes: document.getElementById('edit-client-notes').value })
-        });
-        closeClientModal();
-        loadClients();
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
-    async function deleteClient(id) {
-      if (!confirm('Sei sicuro?')) return;
-      try {
-        await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-        loadClients();
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
-    async function createAppointment(e) {
-      e.preventDefault();
-      const category = document.getElementById('apt-category').value;
-      try {
-        const res = await fetch('/api/appointments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById('apt-client').value), call_type_id: 1, title: document.getElementById('apt-title').value, start_time: new Date(document.getElementById('apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('apt-duration').value), category: category })
-        });
-        if (res.ok) { e.target.reset(); loadAppointments(); }
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
-    function openEditAptModal(id) {
-      const a = appointments.find(x => x.id === id);
-      document.getElementById('edit-apt-id').value = id;
-      document.getElementById('edit-apt-title').value = a.title;
-      document.getElementById('edit-apt-category').value = a.category || 'strategica';
-      document.getElementById('edit-apt-datetime').value = new Date(a.start_time).toISOString().slice(0, 16);
-      document.getElementById('edit-apt-duration').value = a.duration_minutes;
-      document.getElementById('editAptModal').classList.add('active');
-    }
-
+    async function saveClient(e) { e.preventDefault(); const id = document.getElementById('edit-client-id').value; try { await fetch(`/api/clients/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('edit-client-name').value, email: document.getElementById('edit-client-email').value, phone: document.getElementById('edit-client-phone').value, notes: document.getElementById('edit-client-notes').value })}); closeClientModal(); loadClients(); } catch (error) { alert('Errore: ' + error.message); } }
+    async function deleteClient(id) { if (!confirm('Sei sicuro?')) return; try { await fetch(`/api/clients/${id}`, { method: 'DELETE' }); loadClients(); } catch (error) { alert('Errore: ' + error.message); } }
+    async function createAppointment(e) { e.preventDefault(); const category = document.getElementById('apt-category').value; try { const res = await fetch('/api/appointments', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById('apt-client').value), call_type_id: 1, title: document.getElementById('apt-title').value, start_time: new Date(document.getElementById('apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('apt-duration').value), category: category })}); if (res.ok) { e.target.reset(); loadAppointments(); } } catch (error) { alert('Errore: ' + error.message); } }
+    function openEditAptModal(id) { const a = appointments.find(x => x.id === id); document.getElementById('edit-apt-id').value = id; document.getElementById('edit-apt-title').value = a.title; document.getElementById('edit-apt-category').value = a.category || 'work_consulenza'; document.getElementById('edit-apt-datetime').value = new Date(a.start_time).toISOString().slice(0, 16); document.getElementById('edit-apt-duration').value = a.duration_minutes; document.getElementById('editAptModal').classList.add('active'); }
     function closeAptModal() { document.getElementById('editAptModal').classList.remove('active'); }
-
-    async function saveAppointment(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-apt-id').value;
-      try {
-        await fetch(`/api/appointments/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: document.getElementById('edit-apt-title').value, start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('edit-apt-duration').value), category: document.getElementById('edit-apt-category').value })
-        });
-        closeAptModal();
-        loadAppointments();
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
-    async function deleteAppointment(id) {
-      if (!confirm('Sei sicuro?')) return;
-      try {
-        await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
-        loadAppointments();
-      } catch (error) { alert('Errore: ' + error.message); }
-    }
-
+    async function saveAppointment(e) { e.preventDefault(); const id = document.getElementById('edit-apt-id').value; try { await fetch(`/api/appointments/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: document.getElementById('edit-apt-title').value, start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('edit-apt-duration').value), category: document.getElementById('edit-apt-category').value })}); closeAptModal(); loadAppointments(); } catch (error) { alert('Errore: ' + error.message); } }
+    async function deleteAppointment(id) { if (!confirm('Sei sicuro?')) return; try { await fetch(`/api/appointments/${id}`, { method: 'DELETE' }); loadAppointments(); } catch (error) { alert('Errore: ' + error.message); } }
     loadDashboard();
   </script>
 </body>
