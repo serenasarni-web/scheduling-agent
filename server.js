@@ -102,3 +102,59 @@ app.delete('/api/appointments/:id', async (req, res) => {
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
+// GOOGLE CALENDAR SYNC ROUTES
+const { pushToGoogle, deleteFromGoogle } = require('./scripts/google-calendar-sync');
+
+app.post('/api/sync/google/:aptId', async (req, res) => {
+  try {
+    const { aptId } = req.params;
+    const { googleToken } = req.body;
+
+    const apt = await pool.query('SELECT * FROM appointments WHERE id = $1', [aptId]);
+    if (!apt.rows[0]) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+
+    const googleEventId = await pushToGoogle(apt.rows[0], googleToken);
+    
+    if (googleEventId) {
+      await pool.query(
+        'UPDATE appointments SET google_event_id = $1 WHERE id = $2',
+        [googleEventId, aptId]
+      );
+      res.json({ success: true, googleEventId });
+    } else {
+      res.status(400).json({ error: 'Errore sincronizzazione Google' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/sync/google/:aptId', async (req, res) => {
+  try {
+    const { aptId } = req.params;
+    const { googleToken } = req.body;
+
+    const apt = await pool.query('SELECT google_event_id FROM appointments WHERE id = $1', [aptId]);
+    
+    if (!apt.rows[0]?.google_event_id) {
+      return res.status(400).json({ error: 'Appuntamento non sincronizzato' });
+    }
+
+    const deleted = await deleteFromGoogle(apt.rows[0].google_event_id, googleToken);
+    
+    if (deleted) {
+      await pool.query(
+        'UPDATE appointments SET google_event_id = NULL WHERE id = $1',
+        [aptId]
+      );
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ error: 'Errore eliminazione da Google' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
