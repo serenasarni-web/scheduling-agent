@@ -70,7 +70,7 @@ app.post('/api/appointments', async (req, res) => {
     const { user_id, client_id, call_type_id, title, start_time, duration_minutes, category } = req.body;
     const result = await pool.query(
       'INSERT INTO appointments (user_id, client_id, call_type_id, title, start_time, duration_minutes, category) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [user_id, client_id, call_type_id, title, start_time, duration_minutes, category || 'strategica']
+      [user_id, client_id, call_type_id, title, start_time, duration_minutes, category || 'work_consulenza']
     );
     res.json(result.rows[0]);
   } catch (error) {
@@ -83,7 +83,7 @@ app.put('/api/appointments/:id', async (req, res) => {
     const { title, start_time, duration_minutes, category } = req.body;
     const result = await pool.query(
       'UPDATE appointments SET title = $1, start_time = $2, duration_minutes = $3, category = $4 WHERE id = $5 RETURNING *',
-      [title, start_time, duration_minutes, category || 'strategica', req.params.id]
+      [title, start_time, duration_minutes, category || 'work_consulenza', req.params.id]
     );
     res.json(result.rows[0]);
   } catch (error) {
@@ -100,11 +100,8 @@ app.delete('/api/appointments/:id', async (req, res) => {
   }
 });
 
-const PORT = 3001;
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-
-// GOOGLE CALENDAR SYNC ROUTES
-const { pushToGoogle, deleteFromGoogle } = require('./scripts/google-calendar-sync');
+// GOOGLE SYNC
+const { pushToGoogle, deleteFromGoogle, oauth2Client } = require('./scripts/google-calendar-sync');
 
 app.post('/api/sync/google/:aptId', async (req, res) => {
   try {
@@ -159,9 +156,7 @@ app.delete('/api/sync/google/:aptId', async (req, res) => {
   }
 });
 
-// GOOGLE OAUTH CONFIG
-const { oauth2Client } = require('./scripts/google-calendar-sync');
-
+// GOOGLE OAUTH
 app.get('/api/auth/google', (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -195,38 +190,5 @@ app.get('/api/auth/google/status', async (req, res) => {
   }
 });
 
-// GOOGLE OAUTH CONFIG
-const { oauth2Client } = require('./scripts/google-calendar-sync');
-
-app.get('/api/auth/google', (req, res) => {
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/calendar']
-  });
-  res.json({ authUrl });
-});
-
-app.post('/api/auth/google/callback', async (req, res) => {
-  try {
-    const { code } = req.body;
-    const { tokens } = await oauth2Client.getToken(code);
-    
-    await pool.query(
-      'UPDATE users SET google_token = $1 WHERE id = $2',
-      [tokens.access_token, 1]
-    );
-
-    res.json({ success: true, token: tokens.access_token });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.get('/api/auth/google/status', async (req, res) => {
-  try {
-    const user = await pool.query('SELECT google_token FROM users WHERE id = $1', [1]);
-    res.json({ connected: !!user.rows[0]?.google_token });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+const PORT = 3001;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
