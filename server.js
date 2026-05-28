@@ -283,7 +283,6 @@ app.get('/api/invoices/client/:clientId', async (req, res) => {
 });
 
 // GOOGLE CALENDAR SYNC ROUTES
-const { pushToGoogle, deleteFromGoogle } = require('./scripts/google-calendar-sync');
 
 app.post('/api/appointments/auto-sync', async (req, res) => {
   try {
