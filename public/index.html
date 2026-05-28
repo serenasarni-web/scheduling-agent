@@ -459,6 +459,8 @@
       
       document.getElementById('edit-apt-id').value = id;
       document.getElementById('edit-apt-title').value = apt.title;
+      const categoryOptions = `<optgroup label="WORK 💼"><option value="work_consulenza_spot">💼 Consulenza Spot (50 min)</option><option value="work_consulenza">💼 Consulenza (60 min)</option><option value="work_allineamento">💼 Allineamento (30 min)</option><option value="work_primo_app">💼 1° Appuntamento (60 min)</option><option value="work_docenza">💼 Docenza (120 min)</option><option value="work_meeting">💼 Meeting (360 min)</option><option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento Famiglia (360 min)</option><option value="salute_psicologo">🧠 Psicologo (180 min)</option><option value="salute_altro">🧠 Salute Altro (180 min)</option></optgroup><optgroup label="ATTIVITÀ ⚙️"><option value="work_amministrazione">💼 Amministrazione (10 min)</option><option value="work_message_mail">💼 Message/Mail (10 min)</option><option value="gestione_pagamenti">💳 Pagamenti (15 min)</option><option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione Famiglia (120 min)</option><option value="svago">🎉 Svago (60 min)</option><option value="varie">⚙️ Varie (60 min)</option></optgroup>`;
+      document.getElementById("edit-apt-category").innerHTML = categoryOptions;
       document.getElementById('edit-apt-category').value = apt.category;
       document.getElementById('edit-apt-datetime').value = new Date(apt.start_time).toISOString().slice(0, 16);
       document.getElementById('edit-apt-duration').value = apt.duration_minutes;
