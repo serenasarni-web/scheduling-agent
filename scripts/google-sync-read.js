@@ -18,7 +18,6 @@ async function readFromGoogle() {
     const authClient = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: authClient });
 
-    // Usa il TUO email per leggere dal TUO calendario
     const calendarId = 'serena.sarni@gmail.com';
 
     const response = await calendar.events.list({
@@ -29,11 +28,11 @@ async function readFromGoogle() {
     });
 
     const events = response.data.items || [];
-    console.log(`📖 Trovati ${events.length} eventi su ${calendarId}`);
+    console.log(`📖 Trovati ${events.length} eventi`);
 
     let imported = 0;
     for (const event of events) {
-      if (!event.summary) continue;
+      if (!event.summary || event.transparency === 'transparent') continue;
 
       const existing = await pool.query(
         'SELECT id FROM appointments WHERE google_event_id = $1',
@@ -41,20 +40,20 @@ async function readFromGoogle() {
       );
 
       if (!existing.rows.length) {
-        const title = event.summary;
-        const startTime = event.start.dateTime || event.start.date;
-        const endTime = event.end.dateTime || event.end.date;
-        const durationMinutes = Math.round((new Date(endTime) - new Date(startTime)) / 60000) || 60;
+        const title = event.summary || 'Evento';
+        const startTime = new Date(event.start.dateTime || event.start.date).toISOString();
+        const endTime = new Date(event.end.dateTime || event.end.date).toISOString();
+        const durationMinutes = Math.max(Math.round((new Date(endTime) - new Date(startTime)) / 60000), 30);
 
         try {
-          await pool.query(
-            'INSERT INTO appointments (user_id, title, start_time, duration_minutes, google_event_id, category, status) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          const result = await pool.query(
+            'INSERT INTO appointments (user_id, title, start_time, duration_minutes, google_event_id, category, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
             [1, title, startTime, durationMinutes, event.id, 'work_consulenza', 'pending']
           );
-          console.log(`✅ Importato: ${title}`);
+          console.log(`✅ Importato: ${title} (ID: ${result.rows[0].id})`);
           imported++;
         } catch (error) {
-          console.error(`❌ Errore: ${error.message}`);
+          console.error(`❌ Errore inserimento: ${error.message}`);
         }
       }
     }
@@ -62,7 +61,7 @@ async function readFromGoogle() {
     console.log(`📥 Importati ${imported} nuovi eventi`);
     return imported;
   } catch (error) {
-    console.error('❌ Errore:', error.message);
+    console.error('❌ Errore lettura:', error.message);
     return 0;
   }
 }
