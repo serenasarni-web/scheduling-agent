@@ -77,6 +77,7 @@ app.post('/api/appointments', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+app.delete("/api/appointments/:id", async (req, res) => {
 
   try {
     await pool.query('DELETE FROM appointments WHERE id = $1', [req.params.id]);
