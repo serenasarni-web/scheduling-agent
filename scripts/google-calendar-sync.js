@@ -26,17 +26,20 @@ async function pushToGoogle(appointment, userEmail = 'primary') {
       }
     };
 
-    // Se ha già un google_event_id, aggiorna; altrimenti crea
+    console.log(`📝 Creazione evento su calendario: ${userEmail}`);
+    console.log(`📌 Evento: ${appointment.title} @ ${appointment.start_time}`);
+
+    // Crea sul calendario specificato (serena.sarni@gmail.com)
     if (appointment.google_event_id) {
       await calendar.events.update({
-        calendarId: userEmail,
+        calendarId: 'serena.sarni@gmail.com',
         eventId: appointment.google_event_id,
         resource: eventData
       });
-      console.log(`✅ Evento aggiornato su Google: ${appointment.title}`);
+      console.log(`✅ Evento aggiornato: ${appointment.title}`);
     } else {
       const response = await calendar.events.insert({
-        calendarId: userEmail,
+        calendarId: 'serena.sarni@gmail.com',
         resource: eventData
       });
       console.log(`✅ Evento creato su Google: ${appointment.title} (ID: ${response.data.id})`);
@@ -54,7 +57,7 @@ async function deleteFromGoogle(googleEventId, userEmail = 'primary') {
     const calendar = google.calendar({ version: 'v3', auth: authClient });
 
     await calendar.events.delete({
-      calendarId: userEmail,
+      calendarId: 'serena.sarni@gmail.com',
       eventId: googleEventId
     });
     console.log(`✅ Evento eliminato da Google: ${googleEventId}`);
