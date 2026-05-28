@@ -179,3 +179,27 @@
   </script>
 </body>
 </html>
+<script>
+// Override della funzione readFromGoogle
+async function readFromGoogle() { 
+  if (!confirm('Leggere tutti gli eventi da Google Calendar e importarli?')) return; 
+  try { 
+    alert('⏳ Lettura da Google Calendar in corso...'); 
+    const res = await fetch('/api/sync/read-google', {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }
+    }); 
+    const data = await res.json(); 
+    if (res.ok) { 
+      alert(`✅ Importati ${data.syncedCount} nuovi eventi da Google Calendar!`); 
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      loadAppointments(); 
+      loadDashboard(); 
+    } else { 
+      alert('❌ Errore: ' + data.error); 
+    } 
+  } catch (error) { 
+    alert('Errore: ' + error.message); 
+  } 
+}
+</script>
