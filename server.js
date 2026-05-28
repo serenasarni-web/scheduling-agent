@@ -192,3 +192,21 @@ app.get('/api/auth/google/status', async (req, res) => {
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+
+// GOOGLE CALENDAR READ SYNC
+const { readFromGoogle } = require('./scripts/google-sync-read');
+
+app.post('/api/sync/read-google', async (req, res) => {
+  try {
+    const count = await readFromGoogle('primary');
+    res.json({ success: true, syncedCount: count });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Auto-sync ogni 5 minuti
+setInterval(async () => {
+  console.log('⏰ Polling Google Calendar...');
+  await readFromGoogle('primary');
+}, 5 * 60 * 1000); // 5 minuti
