@@ -39,7 +39,7 @@
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .stat-box { background: rgba(102,126,234,0.2); padding: 20px; border-radius: 8px; text-align: center; }
     .stat-box div:first-child { font-size: 28px; color: #667eea; font-weight: 600; }
-    .google-status { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; border-radius: 8px; margin-bottom: 20px; }
+    .google-status { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; }
     .google-status button { padding: 8px 16px; font-size: 14px; }
   </style>
 </head>
@@ -57,10 +57,11 @@
 
     <div id="dashboard" class="content active">
       <div class="section">
-        <h2>🔗 Google Calendar</h2>
+        <h2>🔗 Google Calendar - Sincronizzazione Bidirezionale</h2>
         <div class="google-status">
           <span>✅ Connesso a Google Calendar (Service Account)</span>
-          <button onclick="syncAllAppointments()">🔄 Sincronizza Tutto</button>
+          <button onclick="syncAllAppointments()">📤 Invia a Google</button>
+          <button onclick="readFromGoogle()">📥 Leggi da Google</button>
         </div>
       </div>
 
@@ -169,6 +170,7 @@
     async function createAppointment(e) { e.preventDefault(); const category = document.getElementById('apt-category').value; try { const res = await fetch('/api/appointments', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById('apt-client').value), call_type_id: 1, title: document.getElementById('apt-title').value, start_time: new Date(document.getElementById('apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('apt-duration').value), category: category })}); if (res.ok) { const apt = await res.json(); e.target.reset(); alert('⏳ Appuntamento creato, sincronizzazione in corso...'); await syncAppointmentToGoogle(apt.id); loadAppointments(); } } catch (error) { alert('Errore: ' + error.message); } }
     async function syncAppointmentToGoogle(aptId) { try { const res = await fetch('/api/appointments/auto-sync', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aptId: aptId, userEmail: 'primary' })}); if (res.ok) { console.log('✅ Sincronizzato a Google Calendar'); } else { console.error('❌ Errore sincronizzazione'); } } catch (error) { console.error('Errore:', error); } }
     async function syncAllAppointments() { if (!confirm('Sincronizzare tutti gli appuntamenti non sincronizzati a Google Calendar?')) return; const unsyncedApts = appointments.filter(a => !a.google_event_id); if (unsyncedApts.length === 0) { alert('Tutti gli appuntamenti sono già sincronizzati!'); return; } alert(`⏳ Sincronizzazione in corso... ${unsyncedApts.length} appuntamenti`); for (const apt of unsyncedApts) { await syncAppointmentToGoogle(apt.id); await new Promise(resolve => setTimeout(resolve, 500)); } alert('✅ Sincronizzazione completata!'); loadAppointments(); }
+    async function readFromGoogle() { if (!confirm('Leggere tutti gli eventi da Google Calendar e importarli?')) return; try { const res = await fetch('/api/sync/read-google', {method: 'POST', headers: { 'Content-Type': 'application/json' }}); if (res.ok) { const data = await res.json(); alert(`✅ Importati ${data.syncedCount} eventi da Google Calendar!`); loadAppointments(); loadDashboard(); } else { alert('❌ Errore lettura Google Calendar'); } } catch (error) { alert('Errore: ' + error.message); } }
     function openEditAptModal(id) { const a = appointments.find(x => x.id === id); document.getElementById('edit-apt-id').value = id; document.getElementById('edit-apt-title').value = a.title; document.getElementById('edit-apt-category').value = a.category || 'work_consulenza'; document.getElementById('edit-apt-datetime').value = new Date(a.start_time).toISOString().slice(0, 16); document.getElementById('edit-apt-duration').value = a.duration_minutes; document.getElementById('editAptModal').classList.add('active'); }
     function closeAptModal() { document.getElementById('editAptModal').classList.remove('active'); }
     async function saveAppointment(e) { e.preventDefault(); const id = document.getElementById('edit-apt-id').value; try { await fetch(`/api/appointments/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: document.getElementById('edit-apt-title').value, start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('edit-apt-duration').value), category: document.getElementById('edit-apt-category').value })}); closeAptModal(); loadAppointments(); } catch (error) { alert('Errore: ' + error.message); } }
