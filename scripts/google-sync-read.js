@@ -13,34 +13,34 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/calendar']
 });
 
-async function readFromGoogle(userEmail = 'primary') {
+async function readFromGoogle() {
   try {
     const authClient = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: authClient });
 
-    // Leggi TUTTI gli eventi (non solo futuri)
+    // Usa il TUO email per leggere dal TUO calendario
+    const calendarId = 'serena.sarni@gmail.com';
+
     const response = await calendar.events.list({
-      calendarId: userEmail,
+      calendarId: calendarId,
       maxResults: 250,
       singleEvents: true,
       orderBy: 'startTime'
     });
 
     const events = response.data.items || [];
-    console.log(`📖 Trovati ${events.length} eventi totali su Google Calendar`);
+    console.log(`📖 Trovati ${events.length} eventi su ${calendarId}`);
 
     let imported = 0;
     for (const event of events) {
-      if (!event.summary) continue; // Salta eventi senza titolo
+      if (!event.summary) continue;
 
-      // Cerca se esiste già nel database
       const existing = await pool.query(
         'SELECT id FROM appointments WHERE google_event_id = $1',
         [event.id]
       );
 
       if (!existing.rows.length) {
-        // Nuovo evento da Google → Aggiungi al database
         const title = event.summary;
         const startTime = event.start.dateTime || event.start.date;
         const endTime = event.end.dateTime || event.end.date;
@@ -54,7 +54,7 @@ async function readFromGoogle(userEmail = 'primary') {
           console.log(`✅ Importato: ${title}`);
           imported++;
         } catch (error) {
-          console.error(`❌ Errore inserimento ${title}:`, error.message);
+          console.error(`❌ Errore: ${error.message}`);
         }
       }
     }
@@ -62,7 +62,7 @@ async function readFromGoogle(userEmail = 'primary') {
     console.log(`📥 Importati ${imported} nuovi eventi`);
     return imported;
   } catch (error) {
-    console.error('❌ Errore lettura Google:', error.message);
+    console.error('❌ Errore:', error.message);
     return 0;
   }
 }
