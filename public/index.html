@@ -315,7 +315,7 @@
             client_id: parseInt(document.getElementById('apt-client').value),
             call_type_id: 1,
             title: document.getElementById('apt-title').value,
-            start_time: new Date(document.getElementById("apt-datetime").value).toISOString(),
+            start_time: document.getElementById("apt-datetime").value,
             duration_minutes: parseInt(document.getElementById('apt-duration').value),
             category: category
           })
@@ -407,7 +407,7 @@
           body: JSON.stringify({
             title: document.getElementById('edit-apt-title').value,
             start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(),
-            start_time: new Date(document.getElementById("edit-apt-datetime").value).toISOString(),
+            start_time: document.getElementById("edit-apt-datetime").value,
             category: category
           })
         });
