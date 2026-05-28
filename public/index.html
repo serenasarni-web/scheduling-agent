@@ -21,10 +21,6 @@
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: 600; }
     input, textarea, select { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-family: inherit; }
-    .checkbox-group { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; }
-    .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
-    .checkbox-item label { margin: 0; cursor: pointer; }
     button { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
     .list { display: grid; gap: 15px; }
     .item { background: rgba(255,255,255,0.05); border-left: 3px solid #667eea; padding: 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; }
@@ -35,17 +31,12 @@
     .item-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .item-actions button { padding: 6px 12px; font-size: 12px; background: rgba(102,126,234,0.3); margin: 0; }
     .item-actions button.delete { background: rgba(255,107,107,0.3); color: #ff6b6b; border: 1px solid #ff6b6b; }
-    .item-actions button.duplicate { background: rgba(76, 175, 80, 0.3); color: #4caf50; border: 1px solid #4caf50; }
-    .item-actions button.edit { background: rgba(102,126,234,0.3); color: #667eea; border: 1px solid #667eea; }
+    .item-actions button.edit { background: rgba(102,126,234,0.3); color: #667eea; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .stat-box { background: rgba(102,126,234,0.2); padding: 20px; border-radius: 8px; text-align: center; }
     .stat-box div:first-child { font-size: 28px; color: #667eea; font-weight: 600; }
     .google-status { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; }
     .google-status button { padding: 8px 16px; font-size: 14px; margin: 0; }
-    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-    .modal.active { display: flex; }
-    .modal-content { background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%); border: 1px solid rgba(102,126,234,0.3); border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
-    .modal-close { float: right; font-size: 24px; cursor: pointer; color: #667eea; }
   </style>
 </head>
 <body>
@@ -87,12 +78,47 @@
     <div id="appointments" class="content">
       <div class="section">
         <h2>➕ Nuovo Appuntamento</h2>
-        <form onsubmit="createAppointment(event)">
-          <div class="form-group"><label>Titolo</label><input type="text" id="apt-title" required></div>
-          <div class="form-group"><label>Cliente</label><select id="apt-client" required></select></div>
-          <div class="form-group"><label>Categoria</label><select id="apt-category" required onchange="updateDuration()"><optgroup label="WORK 💼"><option value="work_consulenza_spot">💼 Consulenza Spot (50 min)</option><option value="work_consulenza">💼 Consulenza (60 min)</option><option value="work_allineamento">💼 Allineamento (30 min)</option><option value="work_primo_app">💼 1° Appuntamento (60 min)</option><option value="work_docenza">💼 Docenza (120 min)</option><option value="work_amministrazione">💼 Amministrazione (10 min)</option><option value="work_message_mail">💼 Message/Mail (10 min)</option><option value="work_meeting">💼 Meeting (360 min)</option></optgroup><optgroup label="GESTIONE 💳"><option value="gestione_pagamenti">💳 Pagamenti (15 min)</option></optgroup><optgroup label="FAMIGLIA 👨‍👩‍👧‍👦"><option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione (120 min)</option><option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento (360 min)</option></optgroup><optgroup label="SALUTE 🧠"><option value="salute_psicologo">🧠 Psicologo (180 min)</option><option value="salute_altro">🧠 Altro (180 min)</option></optgroup><optgroup label="SVAGO 🎉"><option value="svago">🎉 Svago (60 min)</option></optgroup><optgroup label="VARIE ⚙️"><option value="varie">⚙️ Varie (60 min)</option></optgroup></select></div>
-          <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="apt-datetime" required></div>
-          <div class="form-group"><label>Durata (minuti)</label><input type="number" id="apt-duration" value="60" required></div>
+        <form id="apt-form" onsubmit="createAppointment(event)">
+          <div class="form-group">
+            <label>Titolo</label>
+            <input type="text" id="apt-title" required>
+          </div>
+          <div class="form-group">
+            <label>Cliente</label>
+            <select id="apt-client" required></select>
+          </div>
+          <div class="form-group">
+            <label>Categoria</label>
+            <select id="apt-category" required onchange="updateDuration()">
+              <optgroup label="WORK 💼">
+                <option value="work_consulenza_spot">💼 Consulenza Spot (50 min)</option>
+                <option value="work_consulenza">💼 Consulenza (60 min)</option>
+                <option value="work_allineamento">💼 Allineamento (30 min)</option>
+                <option value="work_primo_app">💼 1° Appuntamento (60 min)</option>
+                <option value="work_docenza">💼 Docenza (120 min)</option>
+                <option value="work_meeting">💼 Meeting (360 min)</option>
+                <option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento Famiglia (360 min)</option>
+                <option value="salute_psicologo">🧠 Psicologo (180 min)</option>
+                <option value="salute_altro">🧠 Salute Altro (180 min)</option>
+              </optgroup>
+              <optgroup label="ATTIVITÀ ⚙️">
+                <option value="work_amministrazione">💼 Amministrazione (10 min)</option>
+                <option value="work_message_mail">💼 Message/Mail (10 min)</option>
+                <option value="gestione_pagamenti">💳 Pagamenti (15 min)</option>
+                <option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione Famiglia (120 min)</option>
+                <option value="svago">🎉 Svago (60 min)</option>
+                <option value="varie">⚙️ Varie (60 min)</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data e Ora</label>
+            <input type="datetime-local" id="apt-datetime" required>
+          </div>
+          <div class="form-group">
+            <label>Durata (minuti)</label>
+            <input type="number" id="apt-duration" value="60" required>
+          </div>
           <button type="submit">Crea e Sincronizza</button>
         </form>
       </div>
@@ -128,37 +154,12 @@
           <div class="form-group"><label>Tipo Importo</label><select id="invoice-type" required><option value="netto">Netto</option><option value="lordo">Lordo</option></select></div>
           <div class="form-group"><label>Data Scadenza Emissione</label><input type="date" id="invoice-deadline-date" required></div>
           <div class="form-group"><label>Note/Descrizione</label><textarea id="invoice-deadline-notes" rows="2"></textarea></div>
-          <div class="checkbox-group">
-            <div class="checkbox-item">
-              <input type="checkbox" id="invoice-recurring" onchange="toggleRecurring()">
-              <label for="invoice-recurring">Ricrea ogni mese</label>
-            </div>
-          </div>
-          <div class="form-group" id="recurring-months" style="display: none;">
-            <label>Per quanti mesi?</label>
-            <select id="invoice-recurring-months">
-              <option value="3">3 mesi</option>
-              <option value="6">6 mesi</option>
-              <option value="12">12 mesi</option>
-            </select>
-          </div>
           <button type="submit">Aggiungi Scadenza</button>
         </form>
       </div>
-
       <div class="section">
         <h2>📋 Fatture da Emettere</h2>
         <div id="invoice-deadlines-list" class="list"></div>
-      </div>
-
-      <div class="section">
-        <h2>💰 Fatture Emesse (da Fatture in Cloud)</h2>
-        <div class="stats">
-          <div class="stat-box"><div id="total-cloud-invoices">0</div><div>Totale</div></div>
-          <div class="stat-box"><div id="paid-cloud-invoices">€0</div><div>Pagate</div></div>
-          <div class="stat-box"><div id="pending-cloud-invoices">€0</div><div>In Sospeso</div></div>
-        </div>
-        <div id="cloud-invoices-list" class="list"></div>
       </div>
     </div>
 
@@ -167,90 +168,259 @@
     </div>
   </div>
 
-  <div id="editClientModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeEditClientModal()">&times;</span>
-      <h2>Modifica Cliente</h2>
-      <form onsubmit="saveClient(event)">
-        <input type="hidden" id="edit-client-id">
-        <div class="form-group"><label>Nome</label><input type="text" id="edit-client-name" required></div>
-        <div class="form-group"><label>Email</label><input type="email" id="edit-client-email" required></div>
-        <div class="form-group"><label>Telefono</label><input type="tel" id="edit-client-phone"></div>
-        <div class="form-group"><label>Note</label><textarea id="edit-client-notes" rows="3"></textarea></div>
-        <button type="submit">Salva</button>
-      </form>
-    </div>
-  </div>
-
-  <div id="editAptModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeEditAptModal()">&times;</span>
-      <h2>Modifica Appuntamento</h2>
-      <form onsubmit="saveAppointment(event)">
-        <input type="hidden" id="edit-apt-id">
-        <div class="form-group"><label>Titolo</label><input type="text" id="edit-apt-title" required></div>
-        <div class="form-group"><label>Categoria</label><select id="edit-apt-category" required><optgroup label="WORK 💼"><option value="work_consulenza_spot">💼 Consulenza Spot</option><option value="work_consulenza">💼 Consulenza</option><option value="work_allineamento">💼 Allineamento</option><option value="work_primo_app">💼 1° Appuntamento</option><option value="work_docenza">💼 Docenza</option><option value="work_amministrazione">💼 Amministrazione</option><option value="work_message_mail">💼 Message/Mail</option><option value="work_meeting">💼 Meeting</option></optgroup><optgroup label="GESTIONE 💳"><option value="gestione_pagamenti">💳 Pagamenti</option></optgroup><optgroup label="FAMIGLIA 👨‍👩‍👧‍👦"><option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione</option><option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento</option></optgroup><optgroup label="SALUTE 🧠"><option value="salute_psicologo">🧠 Psicologo</option><option value="salute_altro">🧠 Altro</option></optgroup><optgroup label="SVAGO 🎉"><option value="svago">🎉 Svago</option></optgroup><optgroup label="VARIE ⚙️"><option value="varie">⚙️ Varie</option></optgroup></select></div>
-        <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="edit-apt-datetime" required></div>
-        <div class="form-group"><label>Durata (minuti)</label><input type="number" id="edit-apt-duration" required></div>
-        <button type="submit">Salva</button>
-      </form>
-    </div>
-  </div>
-
-  <div id="editInvoiceModal" class="modal">
-    <div class="modal-content">
-      <span class="modal-close" onclick="closeEditInvoiceModal()">&times;</span>
-      <h2>Modifica Fattura da Emettere</h2>
-      <form onsubmit="saveInvoiceDeadline(event)">
-        <input type="hidden" id="edit-invoice-id">
-        <div class="form-group"><label>Cliente</label><select id="edit-invoice-client" required></select></div>
-        <div class="form-group"><label>Importo €</label><input type="number" id="edit-invoice-amount" step="0.01" required></div>
-        <div class="form-group"><label>Tipo Importo</label><select id="edit-invoice-type" required><option value="netto">Netto</option><option value="lordo">Lordo</option></select></div>
-        <div class="form-group"><label>Data Scadenza</label><input type="date" id="edit-invoice-date" required></div>
-        <div class="form-group"><label>Note</label><textarea id="edit-invoice-notes" rows="2"></textarea></div>
-        <button type="submit">Salva</button>
-      </form>
-    </div>
-  </div>
-
   <script>
-    const categoryDurations = {work_consulenza_spot: 50, work_consulenza: 60, work_allineamento: 30, work_primo_app: 60, work_docenza: 120, work_amministrazione: 10, work_message_mail: 10, work_meeting: 360, gestione_pagamenti: 15, famiglia_gestione: 120, famiglia_appuntamento: 360, salute_psicologo: 180, salute_altro: 180, svago: 60, varie: 60};
-    const categoryIcons = {work_consulenza_spot: '💼', work_consulenza: '💼', work_allineamento: '💼', work_primo_app: '💼', work_docenza: '💼', work_amministrazione: '💼', work_message_mail: '💼', work_meeting: '💼', gestione_pagamenti: '💳', famiglia_gestione: '👨‍👩‍👧‍👦', famiglia_appuntamento: '👨‍👩‍👧‍👦', salute_psicologo: '🧠', salute_altro: '🧠', svago: '🎉', varie: '⚙️'};
-    let allClients = [], appointments = [], invoiceDeadlines = [];
+    const categoryDurations = {
+      work_consulenza_spot: 50, work_consulenza: 60, work_allineamento: 30, work_primo_app: 60, 
+      work_docenza: 120, work_amministrazione: 10, work_message_mail: 10, work_meeting: 360, 
+      gestione_pagamenti: 15, famiglia_gestione: 120, famiglia_appuntamento: 360, 
+      salute_psicologo: 180, salute_altro: 180, svago: 60, varie: 60
+    };
+    
+    let allClients = [], appointments = [];
 
-    function getDateKey(date) { return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0'); }
-    function sameDay(d1, d2) { return getDateKey(d1) === getDateKey(d2); }
-    function toggleRecurring() { document.getElementById('recurring-months').style.display = document.getElementById('invoice-recurring').checked ? 'block' : 'none'; }
-    function updateDuration() { const cat = document.getElementById('apt-category').value; document.getElementById('apt-duration').value = categoryDurations[cat] || 60; }
-    function showTab(tab) { document.querySelectorAll('.content').forEach(el => el.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); if (tab === 'clients') loadClients(); if (tab === 'appointments') { loadAppointments(); loadClients(); } if (tab === 'invoices') { loadInvoiceDeadlines(); loadClients(); } if (tab === 'dashboard') loadDashboard(); }
-    async function loadClients() { try { const res = await fetch('/api/clients'); allClients = await res.json(); renderClients(); renderClientSelects(); } catch (error) { console.error('Errore:', error); } }
-    async function loadAppointments() { try { const res = await fetch('/api/appointments'); appointments = await res.json(); renderAppointments(); } catch (error) { console.error('Errore:', error); } }
-    async function loadInvoiceDeadlines() { try { const res = await fetch('/api/invoices'); invoiceDeadlines = await res.json(); renderInvoiceDeadlines(); } catch (error) { console.error('Errore:', error); } }
-    async function loadDashboard() { await loadAppointments(); await loadClients(); document.getElementById('total-apt').textContent = appointments.length; document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length; document.getElementById('total-clients').textContent = allClients.length; const upcoming = appointments.filter(a => new Date(a.start_time) > new Date()).sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).slice(0, 5); document.getElementById('dashboard-appointments').innerHTML = upcoming.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p></div></div>`).join('') || '<p>Nessun appuntamento</p>'; }
-    function renderClients() { document.getElementById('clients-list').innerHTML = allClients.map(c => `<div class="item"><div class="item-content"><h3>${c.name}</h3><p>📧 ${c.email}</p><p>📞 ${c.phone || 'N/A'}</p></div><div class="item-actions"><button class="edit" onclick="editClient(${c.id})">✏️</button><button class="delete" onclick="deleteClient(${c.id})">🗑️</button></div></div>`).join(''); }
-    function renderAppointments() { const today = new Date(); const todayApts = appointments.filter(a => sameDay(new Date(a.start_time), today)); document.getElementById('appointments-list').innerHTML = todayApts.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p></div><div class="item-actions"><button class="edit" onclick="editAppointment(${a.id})">✏️</button><button class="delete" onclick="deleteAppointment(${a.id})">🗑️</button></div></div>`).join('') || '<p>Nessun appuntamento oggi</p>'; }
-    function renderClientSelects() { const opts = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); document.getElementById('apt-client').innerHTML = opts; document.getElementById('invoice-client').innerHTML = opts; document.getElementById('edit-invoice-client').innerHTML = opts; }
-    function renderInvoiceDeadlines() { document.getElementById('invoice-deadlines-list').innerHTML = invoiceDeadlines.map(inv => { const clientName = allClients.find(c => c.id === inv.client_id)?.name || 'Sconosciuto'; return `<div class="item"><div class="item-content"><h3>💰 ${clientName}</h3><p>💵 €${inv.amount} (${inv.notes?.split('|')[0] === 'lordo' ? 'Lordo' : 'Netto'})</p><p>📆 ${new Date(inv.invoice_date).toLocaleDateString('it-IT')}</p></div><div class="item-actions"><button class="edit" onclick="editInvoiceDeadline(${inv.id})">✏️</button><button class="duplicate" onclick="duplicateInvoiceDeadline(${inv.id})">📋</button><button class="delete" onclick="deleteInvoiceDeadline(${inv.id})">🗑️</button></div></div>`; }).join(''); }
-    async function createClient(e) { e.preventDefault(); try { const res = await fetch('/api/clients', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, name: document.getElementById('client-name').value, email: document.getElementById('client-email').value, phone: document.getElementById('client-phone').value, notes: document.getElementById('client-notes').value })}); if (res.ok) { e.target.reset(); loadClients(); } } catch (error) { alert('Errore: ' + error.message); } }
-    async function createAppointment(e) { e.preventDefault(); const category = document.getElementById("apt-category").value; try { const res = await fetch("/api/appointments", {method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById("apt-client").value), call_type_id: 1, title: document.getElementById("apt-title").value, start_time: new Date(document.getElementById("apt-datetime").value).toISOString(), duration_minutes: parseInt(document.getElementById("apt-duration").value), category: category })}); if (res.ok) { const apt = await res.json(); alert("✅ Appuntamento creato!"); e.target.reset(); await syncAppointmentToGoogle(apt.id); loadAppointments(); } else { alert("❌ Errore: " + await res.text()); } } catch (error) { alert("Errore: " + error.message); } }
-    async function createInvoiceDeadline(e) { e.preventDefault(); try { const isRecurring = document.getElementById('invoice-recurring').checked; const months = isRecurring ? parseInt(document.getElementById('invoice-recurring-months').value) : 0; const baseDate = new Date(document.getElementById('invoice-deadline-date').value); const notes = `${document.getElementById('invoice-type').value}${isRecurring ? '|recurring:' + months : ''}`; const res = await fetch('/api/invoices', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById('invoice-client').value), amount: parseFloat(document.getElementById('invoice-amount').value), invoice_date: document.getElementById('invoice-deadline-date').value, payment_date: null, status: 'pending', notes: notes })}); if (res.ok) { if (isRecurring) { for (let i = 1; i < months; i++) { const nextDate = new Date(baseDate); nextDate.setMonth(nextDate.getMonth() + i); const dateStr = nextDate.toISOString().split('T')[0]; await fetch('/api/invoices', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, client_id: parseInt(document.getElementById('invoice-client').value), amount: parseFloat(document.getElementById('invoice-amount').value), invoice_date: dateStr, payment_date: null, status: 'pending', notes: notes })}); } } e.target.reset(); document.getElementById('recurring-months').style.display = 'none'; loadInvoiceDeadlines(); alert('✅ Scadenza aggiunta'); } } catch (error) { alert('Errore: ' + error.message); } }
-    function editClient(id) { const c = allClients.find(x => x.id === id); document.getElementById('edit-client-id').value = id; document.getElementById('edit-client-name').value = c.name; document.getElementById('edit-client-email').value = c.email; document.getElementById('edit-client-phone').value = c.phone || ''; document.getElementById('edit-client-notes').value = c.notes || ''; document.getElementById('editClientModal').classList.add('active'); }
-    function closeEditClientModal() { document.getElementById('editClientModal').classList.remove('active'); }
-    async function saveClient(e) { e.preventDefault(); const id = document.getElementById('edit-client-id').value; try { await fetch(`/api/clients/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('edit-client-name').value, email: document.getElementById('edit-client-email').value, phone: document.getElementById('edit-client-phone').value, notes: document.getElementById('edit-client-notes').value })}); closeEditClientModal(); loadClients(); alert('✅ Cliente aggiornato'); } catch (error) { alert('Errore: ' + error.message); } }
-    function editAppointment(id) { const a = appointments.find(x => x.id === id); document.getElementById('edit-apt-id').value = id; document.getElementById('edit-apt-title').value = a.title; document.getElementById('edit-apt-category').value = a.category; document.getElementById('edit-apt-datetime').value = new Date(a.start_time).toISOString().slice(0, 16); document.getElementById('edit-apt-duration').value = a.duration_minutes; document.getElementById('editAptModal').classList.add('active'); }
-    function closeEditAptModal() { document.getElementById('editAptModal').classList.remove('active'); }
-    async function saveAppointment(e) { e.preventDefault(); const id = document.getElementById('edit-apt-id').value; try { await fetch(`/api/appointments/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: document.getElementById('edit-apt-title').value, start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(), duration_minutes: parseInt(document.getElementById('edit-apt-duration').value), category: document.getElementById('edit-apt-category').value })}); closeEditAptModal(); loadAppointments(); alert('✅ Appuntamento aggiornato'); } catch (error) { alert('Errore: ' + error.message); } }
-    function editInvoiceDeadline(id) { const inv = invoiceDeadlines.find(x => x.id === id); document.getElementById('edit-invoice-id').value = id; document.getElementById('edit-invoice-client').value = inv.client_id; document.getElementById('edit-invoice-amount').value = inv.amount; const type = inv.notes?.split('|')[0] || 'netto'; document.getElementById('edit-invoice-type').value = type; document.getElementById('edit-invoice-date').value = inv.invoice_date; document.getElementById('edit-invoice-notes').value = inv.notes?.replace(type, '') || ''; document.getElementById('editInvoiceModal').classList.add('active'); }
-    function closeEditInvoiceModal() { document.getElementById('editInvoiceModal').classList.remove('active'); }
-    async function saveInvoiceDeadline(e) { e.preventDefault(); const id = document.getElementById('edit-invoice-id').value; try { const notes = document.getElementById('edit-invoice-type').value + (document.getElementById('edit-invoice-notes').value ? '|' + document.getElementById('edit-invoice-notes').value : ''); const res = await fetch(`/api/invoices/${id}`, {method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ client_id: parseInt(document.getElementById('edit-invoice-client').value), amount: parseFloat(document.getElementById('edit-invoice-amount').value), invoice_date: document.getElementById('edit-invoice-date').value, payment_date: null, status: 'pending', notes: notes })}); if (res.ok) { closeEditInvoiceModal(); loadInvoiceDeadlines(); alert('✅ Scadenza aggiornata'); } } catch (error) { alert('Errore: ' + error.message); } }
-    async function duplicateInvoiceDeadline(id) { const inv = invoiceDeadlines.find(x => x.id === id); const nextMonth = new Date(inv.invoice_date); nextMonth.setMonth(nextMonth.getMonth() + 1); try { await fetch('/api/invoices', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: 1, client_id: inv.client_id, amount: inv.amount, invoice_date: nextMonth.toISOString().split('T')[0], payment_date: null, status: 'pending', notes: inv.notes })}); loadInvoiceDeadlines(); alert('✅ Scadenza duplicata per il mese successivo'); } catch (error) { alert('Errore: ' + error.message); } }
-    async function deleteClient(id) { if (!confirm('Elimina cliente?')) return; try { await fetch(`/api/clients/${id}`, { method: 'DELETE' }); loadClients(); } catch (error) { alert('Errore: ' + error.message); } }
-    async function deleteAppointment(id) { if (!confirm('Elimina appuntamento?')) return; try { const apt = appointments.find(x => x.id === id); if (apt?.google_event_id) { await fetch(`/api/appointments/${id}/delete-from-google`, {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userEmail: 'primary' })}); } await fetch(`/api/appointments/${id}`, { method: 'DELETE' }); loadAppointments(); } catch (error) { alert('Errore: ' + error.message); } }
-    async function deleteInvoiceDeadline(id) { if (!confirm('Elimina scadenza?')) return; try { await fetch(`/api/invoices/${id}`, { method: 'DELETE' }); loadInvoiceDeadlines(); } catch (error) { alert('Errore: ' + error.message); } }
+    function updateDuration() {
+      const cat = document.getElementById('apt-category').value;
+      document.getElementById('apt-duration').value = categoryDurations[cat] || 60;
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (tab === 'clients') loadClients();
+      if (tab === 'appointments') { loadAppointments(); loadClients(); }
+      if (tab === 'invoices') { loadInvoiceDeadlines(); loadClients(); }
+      if (tab === 'dashboard') loadDashboard();
+    }
+
+    async function loadClients() {
+      try {
+        const res = await fetch('/api/clients');
+        allClients = await res.json();
+        renderClients();
+        renderClientSelects();
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    async function loadAppointments() {
+      try {
+        const res = await fetch('/api/appointments');
+        appointments = await res.json();
+        renderAppointments();
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    async function loadInvoiceDeadlines() {
+      try {
+        const res = await fetch('/api/invoices');
+        const invoices = await res.json();
+        renderInvoiceDeadlines(invoices);
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    async function loadDashboard() {
+      await loadAppointments();
+      await loadClients();
+      document.getElementById('total-apt').textContent = appointments.length;
+      document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length;
+      document.getElementById('total-clients').textContent = allClients.length;
+      
+      const upcoming = appointments
+        .filter(a => new Date(a.start_time) > new Date())
+        .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
+        .slice(0, 5);
+      
+      document.getElementById('dashboard-appointments').innerHTML = 
+        upcoming.map(a => `<div class="item"><div class="item-content"><h3>${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p></div></div>`).join('') || '<p>Nessun appuntamento</p>';
+    }
+
+    function renderClients() {
+      document.getElementById('clients-list').innerHTML = allClients.map(c => 
+        `<div class="item"><div class="item-content"><h3>${c.name}</h3><p>📧 ${c.email}</p><p>📞 ${c.phone || 'N/A'}</p></div><div class="item-actions"><button class="edit" onclick="editClient(${c.id})">✏️</button><button class="delete" onclick="deleteClient(${c.id})">🗑️</button></div></div>`
+      ).join('');
+    }
+
+    function renderAppointments() {
+      const today = new Date();
+      const todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const todayApts = appointments.filter(a => a.start_time.startsWith(todayKey));
+      
+      document.getElementById('appointments-list').innerHTML = todayApts.map(a => 
+        `<div class="item"><div class="item-content"><h3>${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p></div><div class="item-actions"><button class="edit" onclick="editAppointment(${a.id})">✏️</button><button class="delete" onclick="deleteAppointment(${a.id})">🗑️</button></div></div>`
+      ).join('') || '<p>Nessun appuntamento oggi</p>';
+    }
+
+    function renderClientSelects() {
+      const opts = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('apt-client').innerHTML = opts;
+      document.getElementById('invoice-client').innerHTML = opts;
+    }
+
+    function renderInvoiceDeadlines(invoices) {
+      document.getElementById('invoice-deadlines-list').innerHTML = invoices.map(inv => {
+        const clientName = allClients.find(c => c.id === inv.client_id)?.name || 'Sconosciuto';
+        return `<div class="item"><div class="item-content"><h3>💰 ${clientName}</h3><p>💵 €${inv.amount}</p><p>📆 ${new Date(inv.invoice_date).toLocaleDateString('it-IT')}</p></div><div class="item-actions"><button class="edit" onclick="editInvoice(${inv.id})">✏️</button><button class="delete" onclick="deleteInvoice(${inv.id})">🗑️</button></div></div>`;
+      }).join('');
+    }
+
+    async function createClient(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1,
+            name: document.getElementById('client-name').value,
+            email: document.getElementById('client-email').value,
+            phone: document.getElementById('client-phone').value,
+            notes: document.getElementById('client-notes').value
+          })
+        });
+        if (res.ok) {
+          e.target.reset();
+          loadClients();
+          alert('✅ Cliente aggiunto');
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function createAppointment(e) {
+      e.preventDefault();
+      const category = document.getElementById('apt-category').value;
+      try {
+        const res = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1,
+            client_id: parseInt(document.getElementById('apt-client').value),
+            call_type_id: 1,
+            title: document.getElementById('apt-title').value,
+            start_time: new Date(document.getElementById('apt-datetime').value).toISOString(),
+            duration_minutes: parseInt(document.getElementById('apt-duration').value),
+            category: category
+          })
+        });
+        if (res.ok) {
+          const apt = await res.json();
+          alert('✅ Appuntamento creato!');
+          e.target.reset();
+          
+          // Sincronizza a Google se è categoria APPUNTAMENTO (non ATTIVITÀ)
+          const appointmentCategories = ['work_consulenza_spot', 'work_consulenza', 'work_allineamento', 'work_primo_app', 'work_docenza', 'work_meeting', 'famiglia_appuntamento', 'salute_psicologo', 'salute_altro'];
+          if (appointmentCategories.includes(category)) {
+            await syncAppointmentToGoogle(apt.id);
+          }
+          
+          loadAppointments();
+        } else {
+          alert('❌ Errore: ' + await res.text());
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function syncAppointmentToGoogle(aptId) {
+      try {
+        console.log('⏳ Sincronizzazione appuntamento', aptId);
+        const res = await fetch('/api/appointments/auto-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aptId: aptId, userEmail: 'primary' })
+        });
+        if (res.ok) {
+          console.log('✅ Sincronizzato a Google Calendar');
+        } else {
+          console.error('❌ Errore sync Google:', await res.text());
+        }
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    async function deleteClient(id) {
+      if (!confirm('Elimina cliente?')) return;
+      try {
+        await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+        loadClients();
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function deleteAppointment(id) {
+      if (!confirm('Elimina appuntamento?')) return;
+      try {
+        const apt = appointments.find(x => x.id === id);
+        if (apt?.google_event_id) {
+          await fetch(`/api/appointments/${id}/delete-from-google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userEmail: 'primary' })
+          });
+        }
+        await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+        loadAppointments();
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function deleteInvoice(id) {
+      if (!confirm('Elimina fattura?')) return;
+      try {
+        await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+        loadInvoiceDeadlines();
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function createInvoiceDeadline(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1,
+            client_id: parseInt(document.getElementById('invoice-client').value),
+            amount: parseFloat(document.getElementById('invoice-amount').value),
+            invoice_date: document.getElementById('invoice-deadline-date').value,
+            payment_date: null,
+            status: 'pending',
+            notes: document.getElementById('invoice-type').value
+          })
+        });
+        if (res.ok) {
+          e.target.reset();
+          alert('✅ Scadenza aggiunta');
+          loadInvoiceDeadlines();
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    function editClient(id) { alert('Modifica in sviluppo'); }
+    function editAppointment(id) { alert('Modifica in sviluppo'); }
+    function editInvoice(id) { alert('Modifica in sviluppo'); }
     async function syncAllAppointments() { alert('Sincronizzazione in corso...'); }
     async function readFromGoogle() { alert('Lettura in corso...'); }
+
     loadDashboard();
   </script>
 </body>
 </html>
-    async function syncAppointmentToGoogle(aptId) { try { const res = await fetch('/api/appointments/auto-sync', {method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ aptId: aptId, userEmail: 'primary' })}); if (res.ok) { console.log('✅ Sincronizzato a Google Calendar'); } else { console.error('❌ Errore sync Google'); } } catch (error) { console.error('Errore:', error); } }
