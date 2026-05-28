@@ -227,3 +227,57 @@ app.post('/api/clean-and-import', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// INVOICES ROUTES
+app.get('/api/invoices', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM invoices WHERE user_id = $1 ORDER BY invoice_date DESC', [1]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/invoices', async (req, res) => {
+  try {
+    const { client_id, amount, invoice_date, payment_date, status, notes } = req.body;
+    const result = await pool.query(
+      'INSERT INTO invoices (user_id, client_id, amount, invoice_date, payment_date, status, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [1, client_id, amount, invoice_date, payment_date || null, status || 'pending', notes || '']
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/invoices/:id', async (req, res) => {
+  try {
+    const { amount, invoice_date, payment_date, status, notes } = req.body;
+    const result = await pool.query(
+      'UPDATE invoices SET amount = $1, invoice_date = $2, payment_date = $3, status = $4, notes = $5 WHERE id = $6 RETURNING *',
+      [amount, invoice_date, payment_date || null, status, notes, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/invoices/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM invoices WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/invoices/client/:clientId', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM invoices WHERE client_id = $1 AND user_id = $2 ORDER BY invoice_date DESC', [req.params.clientId, 1]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
