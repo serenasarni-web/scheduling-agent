@@ -78,20 +78,6 @@ app.post('/api/appointments', async (req, res) => {
   }
 });
 
-app.put('/api/appointments/:id', async (req, res) => {
-  try {
-    const { title, start_time, duration_minutes, category } = req.body;
-    const result = await pool.query(
-      'UPDATE appointments SET title = $1, start_time = $2, duration_minutes = $3, category = $4 WHERE id = $5 RETURNING *',
-      [title, start_time, duration_minutes, category || 'work_consulenza', req.params.id]
-    );
-    res.json(result.rows[0]);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-app.delete('/api/appointments/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM appointments WHERE id = $1', [req.params.id]);
     res.json({ success: true });
