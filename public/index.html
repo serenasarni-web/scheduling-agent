@@ -415,7 +415,6 @@
     }
 
     function editClient(id) { alert('Modifica in sviluppo'); }
-    function editAppointment(id) { alert('Modifica in sviluppo'); }
     function editInvoice(id) { alert('Modifica in sviluppo'); }
     async function syncAllAppointments() { alert('Sincronizzazione in corso...'); }
     async function readFromGoogle() { if (!confirm("Leggere appuntamenti da Google Calendar?")) return; try { const res = await fetch("/api/sync/read-google", {method: "POST", headers: { "Content-Type": "application/json" }}); if (res.ok) { const data = await res.json(); alert("✅ Importati " + data.syncedCount + " eventi da Google Calendar!"); loadAppointments(); } else { alert("❌ Errore: " + await res.text()); } } catch (error) { alert("Errore: " + error.message); } }
@@ -424,3 +423,76 @@
   </script>
 </body>
 </html>
+
+    // Modal per modifica appuntamenti
+    const modal = document.createElement('div');
+    modal.id = 'editAptModal';
+    modal.style.display = 'none';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.zIndex = '1000';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.innerHTML = `
+      <div style="background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%); border: 1px solid rgba(102,126,234,0.3); border-radius: 12px; padding: 30px; max-width: 500px; width: 90%;">
+        <span onclick="closeEditAptModal()" style="float: right; font-size: 24px; cursor: pointer; color: #667eea;">&times;</span>
+        <h2 style="color: #667eea; margin-bottom: 15px;">Modifica Appuntamento</h2>
+        <form onsubmit="saveAppointment(event)">
+          <input type="hidden" id="edit-apt-id">
+          <div class="form-group"><label>Titolo</label><input type="text" id="edit-apt-title" required></div>
+          <div class="form-group"><label>Categoria</label><select id="edit-apt-category" required></select></div>
+          <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="edit-apt-datetime" required></div>
+          <div class="form-group"><label>Durata (minuti)</label><input type="number" id="edit-apt-duration" required></div>
+          <button type="submit" style="width: 100%;">Salva</button>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    function editAppointment(id) {
+      const apt = appointments.find(x => x.id === id);
+      if (!apt) return;
+      
+      document.getElementById('edit-apt-id').value = id;
+      document.getElementById('edit-apt-title').value = apt.title;
+      document.getElementById('edit-apt-category').value = apt.category;
+      document.getElementById('edit-apt-datetime').value = new Date(apt.start_time).toISOString().slice(0, 16);
+      document.getElementById('edit-apt-duration').value = apt.duration_minutes;
+      
+      document.getElementById('editAptModal').style.display = 'flex';
+    }
+
+    function closeEditAptModal() {
+      document.getElementById('editAptModal').style.display = 'none';
+    }
+
+    async function saveAppointment(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-apt-id').value;
+      try {
+        const res = await fetch(`/api/appointments/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: document.getElementById('edit-apt-title').value,
+            start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(),
+            duration_minutes: parseInt(document.getElementById('edit-apt-duration').value),
+            category: document.getElementById('edit-apt-category').value
+          })
+        });
+        
+        if (res.ok) {
+          closeEditAptModal();
+          alert('✅ Appuntamento aggiornato');
+          loadAppointments();
+        } else {
+          alert('❌ Errore: ' + await res.text());
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
