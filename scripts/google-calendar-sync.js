@@ -1,27 +1,23 @@
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
-
-// Carica le credenziali del Service Account
-const serviceAccountKey = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../config/google-service-account.json'))
-);
+require('dotenv').config({ path: '.env.local' });
 
 const auth = new google.auth.GoogleAuth({
   keyFile: path.join(__dirname, '../config/google-service-account.json'),
   scopes: ['https://www.googleapis.com/auth/calendar']
 });
 
-async function pushToGoogle(appointment, userEmail) {
+async function pushToGoogle(appointment, userEmail = 'primary') {
   try {
     const authClient = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: authClient });
 
-    const event = {
-      summary: `${appointment.title} [${appointment.category}]`,
-      description: `Categoria: ${appointment.category}\nDurata: ${appointment.duration_minutes} minuti`,
+    const eventData = {
+      summary: appointment.title,
+      description: `Categoria: ${appointment.category}\nDurata: ${appointment.duration_minutes} min`,
       start: {
-        dateTime: appointment.start_time,
+        dateTime: new Date(appointment.start_time).toISOString(),
         timeZone: 'Europe/Rome'
       },
       end: {
@@ -30,36 +26,41 @@ async function pushToGoogle(appointment, userEmail) {
       }
     };
 
-    const response = await calendar.events.insert({
-      calendarId: userEmail || 'primary',
-      resource: event
-    });
-
-    console.log('✅ Sincronizzato a Google Calendar:', response.data.id);
-    return response.data.id;
+    // Se ha già un google_event_id, aggiorna; altrimenti crea
+    if (appointment.google_event_id) {
+      await calendar.events.update({
+        calendarId: userEmail,
+        eventId: appointment.google_event_id,
+        resource: eventData
+      });
+      console.log(`✅ Evento aggiornato su Google: ${appointment.title}`);
+    } else {
+      const response = await calendar.events.insert({
+        calendarId: userEmail,
+        resource: eventData
+      });
+      console.log(`✅ Evento creato su Google: ${appointment.title} (ID: ${response.data.id})`);
+      return response.data.id;
+    }
   } catch (error) {
-    console.error('❌ Errore Google:', error.message);
-    return null;
+    console.error('❌ Errore sync Google:', error.message);
+    throw error;
   }
 }
 
-async function deleteFromGoogle(googleEventId, userEmail) {
+async function deleteFromGoogle(googleEventId, userEmail = 'primary') {
   try {
-    if (!googleEventId) return false;
-
     const authClient = await auth.getClient();
     const calendar = google.calendar({ version: 'v3', auth: authClient });
 
     await calendar.events.delete({
-      calendarId: userEmail || 'primary',
+      calendarId: userEmail,
       eventId: googleEventId
     });
-
-    console.log('✅ Eliminato da Google Calendar:', googleEventId);
-    return true;
+    console.log(`✅ Evento eliminato da Google: ${googleEventId}`);
   } catch (error) {
-    console.error('❌ Errore eliminazione:', error.message);
-    return false;
+    console.error('❌ Errore eliminazione Google:', error.message);
+    throw error;
   }
 }
 
