@@ -20,19 +20,21 @@ async function readFromGoogle() {
 
     const calendarId = 'serena.sarni@gmail.com';
 
+    // Leggi SOLO gli eventi FUTURI (da oggi in poi)
     const response = await calendar.events.list({
       calendarId: calendarId,
+      timeMin: new Date().toISOString(),
       maxResults: 250,
       singleEvents: true,
       orderBy: 'startTime'
     });
 
     const events = response.data.items || [];
-    console.log(`📖 Trovati ${events.length} eventi`);
+    console.log(`📖 Trovati ${events.length} eventi FUTURI`);
 
     let imported = 0;
     for (const event of events) {
-      if (!event.summary || event.transparency === 'transparent') continue;
+      if (!event.summary) continue;
 
       const existing = await pool.query(
         'SELECT id FROM appointments WHERE google_event_id = $1',
@@ -46,19 +48,19 @@ async function readFromGoogle() {
         const durationMinutes = Math.max(Math.round((new Date(endTime) - new Date(startTime)) / 60000), 30);
 
         try {
-          const result = await pool.query(
-            'INSERT INTO appointments (user_id, title, start_time, duration_minutes, google_event_id, category, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+          await pool.query(
+            'INSERT INTO appointments (user_id, title, start_time, duration_minutes, google_event_id, category, status) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [1, title, startTime, durationMinutes, event.id, 'work_consulenza', 'pending']
           );
-          console.log(`✅ Importato: ${title} (ID: ${result.rows[0].id})`);
+          console.log(`✅ Importato: ${title}`);
           imported++;
         } catch (error) {
-          console.error(`❌ Errore inserimento: ${error.message}`);
+          console.error(`❌ Errore: ${error.message}`);
         }
       }
     }
 
-    console.log(`📥 Importati ${imported} nuovi eventi`);
+    console.log(`📥 Importati ${imported} nuovi eventi FUTURI`);
     return imported;
   } catch (error) {
     console.error('❌ Errore lettura:', error.message);
