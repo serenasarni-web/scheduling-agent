@@ -210,3 +210,20 @@ setInterval(async () => {
   console.log('⏰ Polling Google Calendar...');
   await readFromGoogle('primary');
 }, 5 * 60 * 1000); // 5 minuti
+
+// CLEAN AND REIMPORT
+app.post('/api/clean-and-import', async (req, res) => {
+  try {
+    // Elimina solo gli eventi importati da Google (con google_event_id)
+    await pool.query('DELETE FROM appointments WHERE google_event_id IS NOT NULL');
+    console.log('🗑️ Eliminati eventi importati da Google');
+
+    // Reimporta
+    const { readFromGoogle } = require('./scripts/google-sync-read');
+    const count = await readFromGoogle();
+    
+    res.json({ success: true, message: `Reimportati ${count} eventi` });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
