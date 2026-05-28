@@ -51,6 +51,7 @@
         <button onclick="showTab('dashboard')" class="active">Dashboard</button>
         <button onclick="showTab('appointments')">Appuntamenti</button>
         <button onclick="showTab('clients')">Clienti</button>
+        <button onclick="showTab('invoices')">💳 Fatture</button>
         <button onclick="showTab('calendar')">📅 Calendario</button>
       </nav>
     </header>
@@ -114,6 +115,29 @@
       </div>
     </div>
 
+    <div id="invoices" class="content">
+      <div class="section">
+        <h2>➕ Nuova Fattura</h2>
+        <form onsubmit="createInvoice(event)">
+          <div class="form-group"><label>Cliente</label><select id="invoice-client" required></select></div>
+          <div class="form-group"><label>Importo €</label><input type="number" id="invoice-amount" step="0.01" required></div>
+          <div class="form-group"><label>Data Fattura</label><input type="date" id="invoice-date" required></div>
+          <div class="form-group"><label>Data Pagamento</label><input type="date" id="invoice-payment-date"></div>
+          <div class="form-group"><label>Status</label><select id="invoice-status" required><option value="pending">In Sospeso</option><option value="paid">Pagata</option><option value="overdue">Scaduta</option></select></div>
+          <div class="form-group"><label>Note</label><textarea id="invoice-notes" rows="2"></textarea></div>
+          <button type="submit">Crea Fattura</button>
+        </form>
+      </div>
+      <div class="section">
+        <h2>📋 Lista Fatture</h2>
+        <div class="stats">
+          <div class="stat-box"><div id="total-invoices">0</div><div>Totale Fatture</div></div>
+          <div class="stat-box"><div id="paid-invoices">0€</div><div>Pagate</div></div>
+          <div class="stat-box"><div id="pending-invoices">0€</div><div>In Sospeso</div></div>
+        </div>
+        <div id="invoices-list" class="list"></div>
+      </div>
+    </div>
     <div id="calendar" class="content">
       <iframe src="/calendar.html" style="width: 100%; height: 800px; border: none; border-radius: 12px;"></iframe>
     </div>
@@ -155,7 +179,7 @@
     let allClients = [], appointments = [];
 
     function updateDuration() { const cat = document.getElementById('apt-category').value; document.getElementById('apt-duration').value = categoryDurations[cat] || 60; }
-    function showTab(tab) { document.querySelectorAll('.content').forEach(el => el.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); if (tab === 'clients') loadClients(); if (tab === 'appointments') { loadAppointments(); loadClients(); } if (tab === 'dashboard') loadDashboard(); }
+    function showTab(tab) { document.querySelectorAll('.content').forEach(el => el.classList.remove('active')); document.getElementById(tab).classList.add('active'); document.querySelectorAll('nav button').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); if (tab === 'clients') loadClients(); if (tab === 'appointments') { loadAppointments(); loadClients(); } if (tab === 'invoices') { loadInvoices(); renderClientSelect(); } if (tab === 'dashboard') loadDashboard(); }
     async function loadClients() { try { const res = await fetch('/api/clients'); allClients = await res.json(); renderClients(); renderClientSelect(); } catch (error) { console.error('Errore:', error); } }
     async function loadAppointments() { try { const res = await fetch('/api/appointments'); appointments = await res.json(); renderAppointments(); } catch (error) { console.error('Errore:', error); } }
     async function loadDashboard() { await loadAppointments(); await loadClients(); document.getElementById('total-apt').textContent = appointments.length; document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length; document.getElementById('total-clients').textContent = allClients.length; const upcoming = appointments.filter(a => new Date(a.start_time) > new Date()).sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).slice(0, 5); document.getElementById('dashboard-appointments').innerHTML = upcoming.map(a => `<div class="item"><div class="item-content"><h3>${categoryIcons[a.category] || '📅'} ${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p><p>⏱️ ${a.duration_minutes} min</p><p>${a.google_event_id ? '✅ Sincronizzato' : '⏳ Non sincronizzato'}</p></div></div>`).join('') || '<p>Nessun appuntamento</p>'; }
@@ -203,3 +227,88 @@ async function readFromGoogle() {
   } 
 }
 </script>
+
+  <script>
+    // INVOICES FUNCTIONS
+    let invoices = [];
+
+    async function loadInvoices() {
+      try {
+        const res = await fetch('/api/invoices');
+        invoices = await res.json();
+        renderInvoices();
+        updateInvoiceStats();
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    function renderInvoices() {
+      document.getElementById('invoices-list').innerHTML = invoices.map(inv => {
+        const statusColor = inv.status === 'paid' ? '✅' : inv.status === 'pending' ? '⏳' : '⚠️';
+        const clientName = allClients.find(c => c.id === inv.client_id)?.name || 'Sconosciuto';
+        return `<div class="item">
+          <div class="item-content">
+            <h3>${statusColor} ${clientName}</h3>
+            <p>💰 €${inv.amount}</p>
+            <p>📅 ${new Date(inv.invoice_date).toLocaleDateString('it-IT')}</p>
+            ${inv.payment_date ? `<p>✅ Pagata: ${new Date(inv.payment_date).toLocaleDateString('it-IT')}` : '<p style="color: #ff6b6b;">⏳ Non pagata</p>'}
+            ${inv.notes ? `<p style="margin-top:10px; font-style:italic; color:#aaa;">📝 ${inv.notes}</p>` : ''}
+          </div>
+          <div class="item-actions">
+            <button onclick="editInvoice(${inv.id})">✏️</button>
+            <button class="delete" onclick="deleteInvoice(${inv.id})">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function updateInvoiceStats() {
+      const total = invoices.length;
+      const paid = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + parseFloat(i.amount), 0);
+      const pending = invoices.filter(i => i.status === 'pending').reduce((sum, i) => sum + parseFloat(i.amount), 0);
+      
+      document.getElementById('total-invoices').textContent = total;
+      document.getElementById('paid-invoices').textContent = '€' + paid.toFixed(2);
+      document.getElementById('pending-invoices').textContent = '€' + pending.toFixed(2);
+    }
+
+    async function createInvoice(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch('/api/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: parseInt(document.getElementById('invoice-client').value),
+            amount: parseFloat(document.getElementById('invoice-amount').value),
+            invoice_date: document.getElementById('invoice-date').value,
+            payment_date: document.getElementById('invoice-payment-date').value || null,
+            status: document.getElementById('invoice-status').value,
+            notes: document.getElementById('invoice-notes').value
+          })
+        });
+        if (res.ok) {
+          e.target.reset();
+          alert('✅ Fattura creata!');
+          loadInvoices();
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function deleteInvoice(id) {
+      if (!confirm('Elimina fattura?')) return;
+      try {
+        await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+        loadInvoices();
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    function editInvoice(id) {
+      alert('Modifica in sviluppo');
+    }
+  </script>
