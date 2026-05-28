@@ -281,3 +281,73 @@ app.get('/api/invoices/client/:clientId', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// GOOGLE CALENDAR SYNC ROUTES
+const { pushToGoogle, deleteFromGoogle } = require('./scripts/google-calendar-sync');
+
+app.post('/api/appointments/auto-sync', async (req, res) => {
+  try {
+    const { aptId, userEmail } = req.body;
+    const result = await pool.query('SELECT * FROM appointments WHERE id = $1', [aptId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Appuntamento non trovato' });
+    }
+
+    const apt = result.rows[0];
+    const googleEventId = await pushToGoogle(apt, userEmail || 'primary');
+    
+    if (googleEventId) {
+      await pool.query('UPDATE appointments SET google_event_id = $1 WHERE id = $2', [googleEventId, aptId]);
+    }
+    
+    res.json({ success: true, googleEventId });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/api/appointments/:id/delete-from-google', async (req, res) => {
+  try {
+    const { userEmail } = req.body;
+    const result = await pool.query('SELECT google_event_id FROM appointments WHERE id = $1', [req.params.id]);
+    
+    if (result.rows.length === 0 || !result.rows[0].google_event_id) {
+      return res.status(404).json({ error: 'Evento Google non trovato' });
+    }
+
+    await deleteFromGoogle(result.rows[0].google_event_id, userEmail || 'primary');
+    await pool.query('UPDATE appointments SET google_event_id = NULL WHERE id = $1', [req.params.id]);
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/appointments/:id', async (req, res) => {
+  try {
+    const { title, start_time, duration_minutes, category } = req.body;
+    const result = await pool.query(
+      'UPDATE appointments SET title = $1, start_time = $2, duration_minutes = $3, category = $4 WHERE id = $5 RETURNING *',
+      [title, start_time, duration_minutes, category, req.params.id]
+    );
+
+    if (result.rows.length > 0) {
+      const apt = result.rows[0];
+      
+      // Se ha google_event_id, sincronizza l'aggiornamento
+      if (apt.google_event_id) {
+        try {
+          await pushToGoogle(apt, 'primary');
+        } catch (syncError) {
+          console.error('Sync warning:', syncError.message);
+        }
+      }
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
