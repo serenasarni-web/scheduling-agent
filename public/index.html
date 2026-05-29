@@ -258,6 +258,17 @@
       }
     }
 
+
+    async function loadActivities() {
+      try {
+        const res = await fetch("/api/appointments");
+        const all = await res.json();
+        activities = all.filter(a => activityCategories.includes(a.category));
+        renderActivities();
+      } catch (error) {
+        console.error("Errore:", error);
+      }
+    }
     async function loadInvoiceDeadlines() {
       try {
         const res = await fetch('/api/invoices');
