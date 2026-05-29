@@ -51,10 +51,11 @@
       <h1>📅 Scheduling Agent</h1>
       <nav>
         <button onclick="showTab('dashboard')" class="active">Dashboard</button>
-        <button onclick="showTab('appointments')">Appuntamenti</button>
+        <button onclick="showTab('appointments')">📅 Appuntamenti</button>
+        <button onclick="showTab('activities')">⚙️ Attività</button>
         <button onclick="showTab('clients')">Clienti</button>
         <button onclick="showTab('invoices')">💳 Fatture</button>
-        <button onclick="showTab('calendar')">📅 Calendario</button>
+        <button onclick="showTab('calendar')">🗓️ Calendario</button>
       </nav>
     </header>
 
@@ -63,7 +64,6 @@
         <h2>🔗 Google Calendar</h2>
         <div class="google-status">
           <span>✅ Sincronizzato</span>
-          <button onclick="syncAllAppointments()">📤 Invia a Google</button>
           <button onclick="readFromGoogle()">📥 Leggi da Google</button>
         </div>
       </div>
@@ -71,7 +71,7 @@
         <h2>📊 Dashboard</h2>
         <div class="stats">
           <div class="stat-box"><div id="total-apt">0</div><div>Appuntamenti</div></div>
-          <div class="stat-box"><div id="pending-apt">0</div><div>In Sospeso</div></div>
+          <div class="stat-box"><div id="total-act">0</div><div>Attività</div></div>
           <div class="stat-box"><div id="total-clients">0</div><div>Clienti</div></div>
         </div>
       </div>
@@ -95,17 +95,13 @@
               <option value="work_primo_app">💼 1° Appuntamento (60 min)</option>
               <option value="work_docenza">💼 Docenza (120 min)</option>
               <option value="work_meeting">💼 Meeting (360 min)</option>
-              <option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento Famiglia (360 min)</option>
-              <option value="salute_psicologo">🧠 Psicologo (180 min)</option>
-              <option value="salute_altro">🧠 Salute Altro (180 min)</option>
             </optgroup>
-            <optgroup label="ATTIVITÀ ⚙️">
-              <option value="work_amministrazione">💼 Amministrazione (10 min)</option>
-              <option value="work_message_mail">💼 Message/Mail (10 min)</option>
-              <option value="gestione_pagamenti">💳 Pagamenti (15 min)</option>
-              <option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione Famiglia (120 min)</option>
-              <option value="svago">🎉 Svago (60 min)</option>
-              <option value="varie">⚙️ Varie (60 min)</option>
+            <optgroup label="FAMIGLIA 👨‍👩‍👧‍👦">
+              <option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento (360 min)</option>
+            </optgroup>
+            <optgroup label="SALUTE 🧠">
+              <option value="salute_psicologo">🧠 Psicologo (180 min)</option>
+              <option value="salute_altro">🧠 Altro (180 min)</option>
             </optgroup>
           </select></div>
           <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="apt-datetime" required></div>
@@ -116,6 +112,41 @@
       <div class="section">
         <h2>📋 Appuntamenti di Oggi</h2>
         <div id="appointments-list" class="list"></div>
+      </div>
+    </div>
+
+    <div id="activities" class="content">
+      <div class="section">
+        <h2>➕ Nuova Attività</h2>
+        <form onsubmit="createActivity(event)">
+          <div class="form-group"><label>Titolo</label><input type="text" id="act-title" required></div>
+          <div class="form-group"><label>Cliente</label><select id="act-client" required></select></div>
+          <div class="form-group"><label>Categoria</label><select id="act-category" required onchange="updateActivityDuration()">
+            <optgroup label="WORK 💼">
+              <option value="work_amministrazione">💼 Amministrazione (10 min)</option>
+              <option value="work_message_mail">💼 Message/Mail (10 min)</option>
+            </optgroup>
+            <optgroup label="GESTIONE 💳">
+              <option value="gestione_pagamenti">💳 Pagamenti (15 min)</option>
+            </optgroup>
+            <optgroup label="FAMIGLIA 👨‍👩‍👧‍👦">
+              <option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione (120 min)</option>
+            </optgroup>
+            <optgroup label="SVAGO 🎉">
+              <option value="svago">🎉 Svago (60 min)</option>
+            </optgroup>
+            <optgroup label="VARIE ⚙️">
+              <option value="varie">⚙️ Varie (60 min)</option>
+            </optgroup>
+          </select></div>
+          <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="act-datetime" required></div>
+          <div class="form-group"><label>Durata (minuti)</label><input type="number" id="act-duration" value="60" required></div>
+          <button type="submit">Crea Attività</button>
+        </form>
+      </div>
+      <div class="section">
+        <h2>📋 Attività di Oggi</h2>
+        <div id="activities-list" class="list"></div>
       </div>
     </div>
 
@@ -177,6 +208,9 @@
   </div>
 
   <script>
+    const appointmentCategories = ['work_consulenza_spot', 'work_consulenza', 'work_allineamento', 'work_primo_app', 'work_docenza', 'work_meeting', 'famiglia_appuntamento', 'salute_psicologo', 'salute_altro'];
+    const activityCategories = ['work_amministrazione', 'work_message_mail', 'gestione_pagamenti', 'famiglia_gestione', 'svago', 'varie'];
+    
     const categoryDurations = {
       work_consulenza_spot: 50, work_consulenza: 60, work_allineamento: 30, work_primo_app: 60, 
       work_docenza: 120, work_amministrazione: 10, work_message_mail: 10, work_meeting: 360, 
@@ -184,11 +218,16 @@
       salute_psicologo: 180, salute_altro: 180, svago: 60, varie: 60
     };
     
-    let allClients = [], appointments = [];
+    let allClients = [], appointments = [], activities = [];
 
     function updateDuration() {
       const cat = document.getElementById('apt-category').value;
       document.getElementById('apt-duration').value = categoryDurations[cat] || 60;
+    }
+
+    function updateActivityDuration() {
+      const cat = document.getElementById('act-category').value;
+      document.getElementById('act-duration').value = categoryDurations[cat] || 60;
     }
 
     function showTab(tab) {
@@ -199,6 +238,7 @@
       
       if (tab === 'clients') loadClients();
       if (tab === 'appointments') { loadAppointments(); loadClients(); }
+      if (tab === 'activities') { loadActivities(); loadClients(); }
       if (tab === 'invoices') { loadInvoiceDeadlines(); loadClients(); }
       if (tab === 'dashboard') loadDashboard();
     }
@@ -217,8 +257,20 @@
     async function loadAppointments() {
       try {
         const res = await fetch('/api/appointments');
-        appointments = await res.json();
+        const all = await res.json();
+        appointments = all.filter(a => appointmentCategories.includes(a.category));
         renderAppointments();
+      } catch (error) {
+        console.error('Errore:', error);
+      }
+    }
+
+    async function loadActivities() {
+      try {
+        const res = await fetch('/api/appointments');
+        const all = await res.json();
+        activities = all.filter(a => activityCategories.includes(a.category));
+        renderActivities();
       } catch (error) {
         console.error('Errore:', error);
       }
@@ -236,9 +288,10 @@
 
     async function loadDashboard() {
       await loadAppointments();
+      await loadActivities();
       await loadClients();
       document.getElementById('total-apt').textContent = appointments.length;
-      document.getElementById('pending-apt').textContent = appointments.filter(a => a.status === 'pending').length;
+      document.getElementById('total-act').textContent = activities.length;
       document.getElementById('total-clients').textContent = allClients.length;
       
       const upcoming = appointments
@@ -266,9 +319,20 @@
       ).join('') || '<p>Nessun appuntamento oggi</p>';
     }
 
+    function renderActivities() {
+      const today = new Date();
+      const todayKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      const todayActs = activities.filter(a => a.start_time.startsWith(todayKey));
+      
+      document.getElementById('activities-list').innerHTML = todayActs.map(a => 
+        `<div class="item"><div class="item-content"><h3>${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString('it-IT')}</p></div><div class="item-actions"><button class="edit" onclick="editActivity(${a.id})">✏️</button><button class="delete" onclick="deleteActivity(${a.id})">🗑️</button></div></div>`
+      ).join('') || '<p>Nessuna attività oggi</p>';
+    }
+
     function renderClientSelects() {
       const opts = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       document.getElementById('apt-client').innerHTML = opts;
+      document.getElementById('act-client').innerHTML = opts;
       document.getElementById('invoice-client').innerHTML = opts;
     }
 
@@ -315,7 +379,7 @@
             client_id: parseInt(document.getElementById('apt-client').value),
             call_type_id: 1,
             title: document.getElementById('apt-title').value,
-            start_time: document.getElementById("apt-datetime").value,
+            start_time: document.getElementById('apt-datetime').value,
             duration_minutes: parseInt(document.getElementById('apt-duration').value),
             category: category
           })
@@ -324,13 +388,37 @@
           const apt = await res.json();
           alert('✅ Appuntamento creato!');
           e.target.reset();
-          
-          const appointmentCategories = ['work_consulenza_spot', 'work_consulenza', 'work_allineamento', 'work_primo_app', 'work_docenza', 'work_meeting', 'famiglia_appuntamento', 'salute_psicologo', 'salute_altro'];
-          if (appointmentCategories.includes(category)) {
-            await syncAppointmentToGoogle(apt.id);
-          }
-          
+          await syncAppointmentToGoogle(apt.id);
           loadAppointments();
+        } else {
+          alert('❌ Errore: ' + await res.text());
+        }
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function createActivity(e) {
+      e.preventDefault();
+      const category = document.getElementById('act-category').value;
+      try {
+        const res = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: 1,
+            client_id: parseInt(document.getElementById('act-client').value),
+            call_type_id: 1,
+            title: document.getElementById('act-title').value,
+            start_time: document.getElementById('act-datetime').value,
+            duration_minutes: parseInt(document.getElementById('act-duration').value),
+            category: category
+          })
+        });
+        if (res.ok) {
+          alert('✅ Attività creata!');
+          e.target.reset();
+          loadActivities();
         } else {
           alert('❌ Errore: ' + await res.text());
         }
@@ -368,17 +456,13 @@
           <option value="work_primo_app">💼 1° Appuntamento (60 min)</option>
           <option value="work_docenza">💼 Docenza (120 min)</option>
           <option value="work_meeting">💼 Meeting (360 min)</option>
-          <option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento Famiglia (360 min)</option>
-          <option value="salute_psicologo">🧠 Psicologo (180 min)</option>
-          <option value="salute_altro">🧠 Salute Altro (180 min)</option>
         </optgroup>
-        <optgroup label="ATTIVITÀ ⚙️">
-          <option value="work_amministrazione">💼 Amministrazione (10 min)</option>
-          <option value="work_message_mail">💼 Message/Mail (10 min)</option>
-          <option value="gestione_pagamenti">💳 Pagamenti (15 min)</option>
-          <option value="famiglia_gestione">👨‍👩‍👧‍👦 Gestione Famiglia (120 min)</option>
-          <option value="svago">🎉 Svago (60 min)</option>
-          <option value="varie">⚙️ Varie (60 min)</option>
+        <optgroup label="FAMIGLIA 👨‍👩‍👧‍👦">
+          <option value="famiglia_appuntamento">👨‍👩‍👧‍👦 Appuntamento (360 min)</option>
+        </optgroup>
+        <optgroup label="SALUTE 🧠">
+          <option value="salute_psicologo">🧠 Psicologo (180 min)</option>
+          <option value="salute_altro">🧠 Altro (180 min)</option>
         </optgroup>
       `;
       
@@ -386,7 +470,7 @@
       document.getElementById('edit-apt-title').value = apt.title;
       document.getElementById('edit-apt-category').innerHTML = categoryOptions;
       document.getElementById('edit-apt-category').value = apt.category;
-      document.getElementById('edit-apt-datetime').value = new Date(apt.start_time).toISOString().slice(0, 16);
+      document.getElementById('edit-apt-datetime').value = apt.start_time.slice(0, 16);
       document.getElementById('edit-apt-duration').value = apt.duration_minutes;
       
       document.getElementById('editAptModal').classList.add('active');
@@ -406,18 +490,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             title: document.getElementById('edit-apt-title').value,
-            start_time: new Date(document.getElementById('edit-apt-datetime').value).toISOString(),
-            start_time: document.getElementById("edit-apt-datetime").value,
+            start_time: document.getElementById('edit-apt-datetime').value,
+            duration_minutes: parseInt(document.getElementById('edit-apt-duration').value),
             category: category
           })
         });
         
         if (res.ok) {
-          const appointmentCategories = ['work_consulenza_spot', 'work_consulenza', 'work_allineamento', 'work_primo_app', 'work_docenza', 'work_meeting', 'famiglia_appuntamento', 'salute_psicologo', 'salute_altro'];
-          if (appointmentCategories.includes(category)) {
-            await syncAppointmentToGoogle(id);
-          }
-          
+          await syncAppointmentToGoogle(id);
           closeEditAptModal();
           alert('✅ Appuntamento aggiornato');
           loadAppointments();
@@ -452,6 +532,16 @@
         }
         await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
         loadAppointments();
+      } catch (error) {
+        alert('Errore: ' + error.message);
+      }
+    }
+
+    async function deleteActivity(id) {
+      if (!confirm('Elimina attività?')) return;
+      try {
+        await fetch(`/api/appointments/${id}`, { method: 'DELETE' });
+        loadActivities();
       } catch (error) {
         alert('Errore: ' + error.message);
       }
@@ -494,8 +584,8 @@
     }
 
     function editClient(id) { alert('Modifica cliente in sviluppo'); }
+    function editActivity(id) { alert('Modifica attività in sviluppo'); }
     function editInvoice(id) { alert('Modifica fattura in sviluppo'); }
-    async function syncAllAppointments() { alert('Sincronizzazione in corso...'); }
     async function readFromGoogle() { 
       if (!confirm('Leggere appuntamenti da Google Calendar?')) return;
       try {
