@@ -10,11 +10,11 @@
     .container { max-width: 1200px; margin: 0 auto; }
     h1 { color: #667eea; margin-bottom: 20px; }
     .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    button { padding: 8px 16px; background: #667eea; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
     button:hover { background: #764ba2; }
     button.active { background: #764ba2; }
     button.nav-btn { padding: 8px 12px; font-size: 16px; }
-    .period-display { display: flex; gap: 10px; align-items: center; }
+    .period-display { display: flex; gap: 10px; align-items: center; min-width: 200px; }
     input[type="date"] { padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid #667eea; border-radius: 6px; color: #fff; }
     .calendar { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
     .month-header { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #667eea; }
@@ -60,12 +60,6 @@
   </div>
 
   <script>
-    function parseLocalDateTime(dateString) {
-      const [date, time] = dateString.split("T");
-      const [year, month, day] = date.split("-");
-      const [hour, minute, second] = time.split(":");
-      return new Date(year, month - 1, day, hour, minute, second || 0);
-    }
     const categoryIcons = {
       work_consulenza_spot: '💼', work_consulenza: '💼', work_allineamento: '💼', work_primo_app: '💼',
       work_docenza: '💼', work_amministrazione: '💼', work_message_mail: '💼', work_meeting: '💼',
@@ -177,7 +171,6 @@
       const startingDayOfWeek = firstDay.getDay();
 
       let html = '<div class="month-grid">';
-
       ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'].forEach(day => {
         html += `<div class="day-header">${day}</div>`;
       });
@@ -190,14 +183,13 @@
         const date = new Date(year, month, day);
         const dateStr = getDateKey(date);
         const isToday = sameDay(date, new Date());
-        const dayAppointments = appointments.filter(apt => sameDay(parseLocalDateTime(apt.start_time), date));
+        const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
         html += `<div class="day ${isToday ? 'today' : ''}" onclick="selectDay('${dateStr}')">
           <div class="day-number">${day}</div>
           ${dayAppointments.map(apt => `<div class="apt-mini">${categoryIcons[apt.category] || '📅'} ${apt.title}</div>`).join('')}
         </div>`;
       }
-
       html += '</div>';
       document.getElementById('calendar').innerHTML = html;
     }
@@ -207,25 +199,23 @@
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
 
       let html = '<div class="week-grid">';
-
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
         const dateStr = getDateKey(date);
-        const dayAppointments = appointments.filter(apt => sameDay(parseLocalDateTime(apt.start_time), date));
+        const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), date));
 
         html += `<div class="week-day" onclick="selectDay('${dateStr}')">
           <div class="week-day-header">${date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' })}</div>
-          ${dayAppointments.map(apt => `<div class="apt-mini">${categoryIcons[apt.category] || '📅'} ${apt.title}<br>${parseLocalDateTime(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
+          ${dayAppointments.map(apt => `<div class="apt-mini">${categoryIcons[apt.category] || '📅'} ${apt.title}<br>${new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}</div>`).join('')}
         </div>`;
       }
-
       html += '</div>';
       document.getElementById('calendar').innerHTML = html;
     }
 
     function renderDay() {
-      const dayAppointments = appointments.filter(apt => sameDay(parseLocalDateTime(apt.start_time), currentDate)).sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+      const dayAppointments = appointments.filter(apt => sameDay(new Date(apt.start_time), currentDate)).sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
 
       let html = `<div class="day-view">
         <h2>${currentDate.toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h2>`;
@@ -234,13 +224,12 @@
         html += '<p style="color: rgba(255,255,255,0.5);">Nessun appuntamento</p>';
       } else {
         dayAppointments.forEach(apt => {
-          const time = parseLocalDateTime(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          const time = new Date(apt.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
           html += `<div class="time-slot">
             <div class="time">${time}</div>
             <div class="apt-details">
               <h3>${categoryIcons[apt.category] || '📅'} ${apt.title}</h3>
               <p>⏱️ ${apt.duration_minutes} minuti</p>
-              <p>${apt.google_event_id ? '✅ Da Google' : '✏️ Creato localmente'}</p>
             </div>
           </div>`;
         });
@@ -251,7 +240,6 @@
     }
 
     loadAppointments();
-    updatePeriodLabel();
   </script>
 </body>
 </html>
