@@ -218,6 +218,8 @@
       salute_psicologo: 180, salute_altro: 180, svago: 60, varie: 60
     };
     
+    const appointmentCategories = ["work_consulenza_spot", "work_consulenza", "work_allineamento", "work_primo_app", "work_docenza", "work_meeting", "famiglia_appuntamento", "salute_psicologo", "salute_altro"];
+    const activityCategories = ["work_amministrazione", "work_message_mail", "gestione_pagamenti", "famiglia_gestione", "svago", "varie"];
     let allClients = [], appointments = [], activities = [];
 
     function updateDuration() {
