@@ -209,6 +209,22 @@
 
   <script>
     const appointmentCategories = ['work_consulenza_spot', 'work_consulenza', 'work_allineamento', 'work_primo_app', 'work_docenza', 'work_meeting', 'famiglia_appuntamento', 'salute_psicologo', 'salute_altro'];
+  <div id="editActModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Modifica Attività</h2>
+        <button class="modal-close" onclick="closeEditActModal()">&times;</button>
+      </div>
+      <form onsubmit="saveActivity(event)">
+        <input type="hidden" id="edit-act-id">
+        <div class="form-group"><label>Titolo</label><input type="text" id="edit-act-title" required></div>
+        <div class="form-group"><label>Categoria</label><select id="edit-act-category" required></select></div>
+        <div class="form-group"><label>Data e Ora</label><input type="datetime-local" id="edit-act-datetime" required></div>
+        <div class="form-group"><label>Durata (minuti)</label><input type="number" id="edit-act-duration" required></div>
+        <button type="submit" style="width: 100%;">Salva</button>
+      </form>
+    </div>
+  </div>
     const activityCategories = ['work_amministrazione', 'work_message_mail', 'gestione_pagamenti', 'famiglia_gestione', 'svago', 'varie'];
     
     const categoryDurations = {
@@ -471,7 +487,8 @@
       document.getElementById('edit-apt-category').innerHTML = categoryOptions;
       document.getElementById('edit-apt-category').value = apt.category;
       document.getElementById('edit-apt-datetime').value = apt.start_time.slice(0, 16);
-      document.getElementById('edit-apt-duration').value = apt.duration_minutes;
+      const dtStr = apt.start_time.replace("Z", "").split(".")[0].substring(0, 16);
+      document.getElementById("edit-apt-datetime").value = dtStr;
       
       document.getElementById('editAptModal').classList.add('active');
     }
