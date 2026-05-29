@@ -312,6 +312,16 @@
     }
 
     function renderClientSelects() {
+
+    function renderActivities() {
+      const today = new Date();
+      const todayKey = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+      const todayActs = activities.filter(a => a.start_time.startsWith(todayKey));
+      
+      document.getElementById("activities-list").innerHTML = todayActs.map(a => 
+        `<div class="item"><div class="item-content"><h3>${a.title}</h3><span class="category-badge">${a.category}</span><p>📅 ${new Date(a.start_time).toLocaleString("it-IT")}</p></div><div class="item-actions"><button class="edit" onclick="editActivity(${a.id})">✏️</button><button class="delete" onclick="deleteActivity(${a.id})">🗑️</button></div></div>`
+      ).join("") || "<p>Nessuna attività oggi</p>";
+    }
       const opts = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       document.getElementById('apt-client').innerHTML = opts;
       document.getElementById('invoice-client').innerHTML = opts;
