@@ -304,7 +304,7 @@
       const opts = allClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       document.getElementById('apt-client').innerHTML = opts;
       document.getElementById('invoice-client').innerHTML = opts;
-    }
+      document.getElementById("act-client").innerHTML = opts;    }
 
     function renderInvoiceDeadlines(invoices) {
       document.getElementById('invoice-deadlines-list').innerHTML = invoices.map(inv => {
