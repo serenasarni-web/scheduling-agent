@@ -403,7 +403,7 @@
       const opts = appointmentCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
       document.getElementById('edit-apt-category').innerHTML = opts;
       document.getElementById('edit-apt-category').value = apt.category;
-      document.getElementById("edit-apt-datetime").value = apt.start_time.replace("Z", "").substring(0, 16);
+      const date = new Date(apt.start_time); date.setHours(date.getHours() + 2); const dtStr = date.toISOString().substring(0, 16); document.getElementById("edit-apt-datetime").value = dtStr;
       document.getElementById('edit-apt-duration').value = apt.duration_minutes;
       document.getElementById('editAptModal').classList.add('active');
     }
@@ -415,7 +415,7 @@
       const opts = activityCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
       document.getElementById('edit-act-category').innerHTML = opts;
       document.getElementById('edit-act-category').value = act.category;
-      document.getElementById("edit-act-datetime").value = act.start_time.replace("Z", "").substring(0, 16);
+      const date = new Date(act.start_time); date.setHours(date.getHours() + 2); const dtStr = date.toISOString().substring(0, 16); document.getElementById("edit-act-datetime").value = dtStr;
       document.getElementById('edit-act-duration').value = act.duration_minutes;
       document.getElementById('editActModal').classList.add('active');
     }
